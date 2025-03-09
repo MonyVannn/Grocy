@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import { useState } from "react";
 import { Edit, MoreHorizontal, Search, Trash2, UserPlus } from "lucide-react";

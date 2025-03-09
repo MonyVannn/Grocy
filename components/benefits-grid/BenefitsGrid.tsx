@@ -22,8 +22,8 @@ export const BenefitsGrid = () => {
       <div className="col-span-3">
         <SectionHeading>The clear benefits of X</SectionHeading>
         <SectionSubheading>
-          Features are good, benefits are even better! Here's a made up list for
-          reference.
+          Features are good, benefits are even better! Here&apos;s a made up
+          list for reference.
         </SectionSubheading>
       </div>
       <IntegrationsBlock />

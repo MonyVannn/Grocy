@@ -1,6 +1,7 @@
 "use client";
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -178,11 +179,10 @@ const owners = [
   { name: "Emma", avatar: "/placeholder.svg?height=32&width=32" },
 ];
 
-export default async function GroceryListDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+type Params = Promise<{ id: string }>;
+
+export default function GroceryListDetailPage(props: { params: Params }) {
+  const params = use(props.params);
   const router = useRouter();
   const listId = Number.parseInt(params.id);
 
@@ -808,7 +808,8 @@ export default async function GroceryListDetailPage({
           <DialogHeader>
             <DialogTitle>Edit Grocery Item</DialogTitle>
             <DialogDescription>
-              Make changes to the grocery item. Click save when you're done.
+              Make changes to the grocery item. Click save when you&apos;re
+              done.
             </DialogDescription>
           </DialogHeader>
           {currentItem && (

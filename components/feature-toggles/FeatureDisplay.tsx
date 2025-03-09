@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import React from "react";
+import React, { JSX } from "react";
 import { Button } from "../shared/Button";
 
 export const FeatureDisplay = ({

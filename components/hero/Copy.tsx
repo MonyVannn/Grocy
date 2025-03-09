@@ -1,7 +1,6 @@
 import Link from "next/link";
 import React from "react";
 import { FiArrowUpRight } from "react-icons/fi";
-import { Button } from "../shared/Button";
 
 export const Copy = () => {
   return (

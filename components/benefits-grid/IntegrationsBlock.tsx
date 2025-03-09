@@ -36,7 +36,7 @@ export const IntegrationsBlock = () => (
         <SiZapier className="text-4xl" />
       </div>
       <div className="grid w-full place-content-center border-t-2 border-zinc-900 bg-white py-8">
-        +1,000's more
+        +1,000&apos;s more
       </div>
     </div>
   </Block>

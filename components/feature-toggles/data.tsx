@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { AiFillBug } from "react-icons/ai";
 import { BsFillCursorFill } from "react-icons/bs";
 import {
@@ -25,7 +26,7 @@ const IssuesComponent = () => {
         </div>
       </div>
       <div className="-ml-1.5 mb-4 flex items-center gap-1.5">
-        <img
+        <Image
           src="https://api.dicebear.com/8.x/notionists/svg"
           alt="avatar"
           className="ml-1.5 size-8 rounded bg-indigo-200 shadow-inner"

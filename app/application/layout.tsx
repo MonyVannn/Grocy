@@ -1,15 +1,11 @@
 import type React from "react";
-import { Inter } from "next/font/google";
 
 import { AppSidebar } from "@/components/Sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { currentUser } from "@clerk/nextjs/server";
-import { getUser } from "@/convex/users";
 import { api } from "@/convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
 import { redirect } from "next/navigation";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export default async function RootLayout({
   children,

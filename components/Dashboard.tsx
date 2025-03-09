@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import { ArrowDown, ArrowUp, Clock, Filter, Package } from "lucide-react";
+import { ArrowDown, ArrowUp, Filter } from "lucide-react";
 
 import {
   CartesianGrid,
@@ -25,7 +24,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -168,7 +166,7 @@ export function Dashboard() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Grocery Dashboard</h1>
         <p className="text-muted-foreground">
-          Track and manage your family's grocery expenses
+          Track and manage your family&apos;s grocery expenses
         </p>
       </div>
 

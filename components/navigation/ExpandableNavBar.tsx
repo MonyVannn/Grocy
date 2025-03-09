@@ -32,7 +32,7 @@ export const ExpandableNavBar = ({
     const link = links.find((l) => l.title === hovered);
 
     return link ? link.sublinks : [];
-  }, [hovered]);
+  }, [hovered, links]);
 
   return (
     <>

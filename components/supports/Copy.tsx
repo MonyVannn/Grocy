@@ -12,7 +12,7 @@ export const Copy = ({
   return (
     <div className="w-full">
       <span className="mb-1.5 block text-center text-indigo-600 md:text-start">
-        Show who it's for
+        Show who it&apos;s for
       </span>
       <h2 className="mb-3 text-center text-4xl font-bold leading-tight md:text-start md:text-5xl md:leading-tight">
         Support your business, big or small
