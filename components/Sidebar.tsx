@@ -85,7 +85,7 @@ export function AppSidebar({ name, email }: { name?: string; email?: string }) {
           className="flex items-center gap-2 px-4 py-3 font-semibold"
         >
           <ShoppingCart className="h-5 w-5" />
-          <span>Grocy Dashboard</span>
+          <span>Grocy</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>

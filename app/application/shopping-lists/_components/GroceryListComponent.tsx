@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AvatarGroup } from "@/components/ui/avatar-group";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -59,50 +58,6 @@ import {
 import { GroceryList, Member, User } from "@/app/types";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-
-// Sample data for grocery lists
-const initialGroceryLists = [
-  {
-    id: 1,
-    date: "2023-06-15",
-    totalItems: 12,
-    totalCost: 74.32,
-    primaryOwners: ["Sarah", "Michael"],
-    note: "Weekly grocery shopping",
-  },
-  {
-    id: 2,
-    date: "2023-06-08",
-    totalItems: 8,
-    totalCost: 45.99,
-    primaryOwners: ["Sarah"],
-    note: "Quick midweek run",
-  },
-  {
-    id: 3,
-    date: "2023-06-01",
-    totalItems: 15,
-    totalCost: 82.75,
-    primaryOwners: ["Michael", "Emma"],
-    note: "Monthly stock up",
-  },
-  {
-    id: 4,
-    date: "2023-05-25",
-    totalItems: 6,
-    totalCost: 32.48,
-    primaryOwners: ["All"],
-    note: "Essential items only",
-  },
-  {
-    id: 5,
-    date: "2023-05-18",
-    totalItems: 10,
-    totalCost: 67.21,
-    primaryOwners: ["Emma"],
-    note: "Weekend shopping",
-  },
-];
 
 export default function GroceryLists({
   user,
@@ -205,7 +160,7 @@ export default function GroceryLists({
 
     try {
       // Call the Convex API to add the new list
-      await convex.mutation(api.list.addList, {
+      await convex.mutation(api.groceryLists.addList, {
         listId: newListId,
         userId: user.userId,
         date: new Date(newList.date).getTime() + 86400000, // Add one day (in milliseconds)
@@ -234,7 +189,7 @@ export default function GroceryLists({
 
     try {
       // call the Convex API to delete the list
-      await convex.mutation(api.list.deleteList, {
+      await convex.mutation(api.groceryLists.deleteList, {
         listId: currentList?.listId ?? "",
       });
 
@@ -254,7 +209,7 @@ export default function GroceryLists({
 
     try {
       // call the Convex API to delete the selected lists
-      await convex.mutation(api.list.bulkDeleteLists, {
+      await convex.mutation(api.groceryLists.bulkDeleteLists, {
         listIds: selectedItems.map((id) => id.toString()),
       });
 
@@ -539,7 +494,7 @@ export default function GroceryLists({
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/shopping-lists/${list.listId}`}
+                          href={`/application/shopping-lists/${list.listId}`}
                           className="hover:underline font-medium"
                         >
                           {formatDate(new Date(list.date).toISOString()) ?? "-"}
@@ -566,7 +521,9 @@ export default function GroceryLists({
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/shopping-lists/${list.listId}`}>
+                              <Link
+                                href={`/application/shopping-lists/${list.listId}`}
+                              >
                                 <Calendar className="mr-2 h-4 w-4" />
                                 View Items
                               </Link>
@@ -666,7 +623,8 @@ export default function GroceryLists({
             <Button
               variant="outline"
               onClick={() => {
-                setSelectedItems([]), setIsBulkDeleteDialogOpen(false);
+                setSelectedItems([]);
+                setIsBulkDeleteDialogOpen(false);
               }}
             >
               Cancel

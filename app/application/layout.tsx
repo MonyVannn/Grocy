@@ -39,9 +39,8 @@ export default async function RootLayout({
             email={user?.emailAddresses[0].emailAddress || ""}
           />
           <div className="flex-1 w-full">
-            <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:px-6 w-full">
+            <header className="sticky top-0 z-10 flex h-16 md:h-0 items-center gap-4 border-b bg-background px-4 sm:px-6 w-full">
               <SidebarTrigger className="md:hidden" />
-              <h1 className="text-lg font-semibold">Grocy Dashboard</h1>
             </header>
             <main className="w-full p-4 sm:p-6">{children}</main>
           </div>

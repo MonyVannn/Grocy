@@ -22,7 +22,7 @@ async function ShoppingList() {
     userId: user?.id || "",
   });
 
-  const convexLists = await convex.query(api.list.getLists, {
+  const convexLists = await convex.query(api.groceryLists.getLists, {
     userId: user?.id || "",
   });
 

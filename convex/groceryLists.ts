@@ -39,6 +39,29 @@ export const addList = mutation({
   },
 });
 
+export const updateList = mutation({
+  args: {
+    listId: v.string(),
+    itemAmount: v.number(),
+    totalPrice: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existingList = await ctx.db
+      .query("groceryLists")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .first();
+
+    if (existingList) {
+      await ctx.db.patch(existingList._id, {
+        itemsAmount: args.itemAmount,
+        totalPrice: args.totalPrice,
+      });
+    }
+
+    console.log("List updated successfully");
+  },
+});
+
 export const deleteList = mutation({
   args: { listId: v.string() },
   handler: async (ctx, args) => {
@@ -88,5 +111,22 @@ export const getLists = query({
     if (!lists) return null;
 
     return lists;
+  },
+});
+
+export const getListById = query({
+  args: { listId: v.string() },
+
+  handler: async (ctx, args) => {
+    if (!args.listId) return null;
+
+    const list = await ctx.db
+      .query("groceryLists")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .first();
+
+    if (!list) return null;
+
+    return list;
   },
 });

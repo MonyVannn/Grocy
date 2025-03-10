@@ -38,7 +38,7 @@ export default defineSchema({
     listId: v.string(), // Reference to the grocery list this item belongs to
     name: v.string(), // Name of the grocery item
     category: v.string(), // Category of the grocery item (e.g., Dairy, Fruits)
-    quantity: v.number(), // Quantity of the grocery item
+    quantity: v.string(), // Quantity of the grocery item
     price: v.number(), // Price of the grocery item
     owners: v.array(v.string()), // Array of member IDs indicating ownership of the item
     createdAt: v.optional(v.number()), // Timestamp when the grocery item was created

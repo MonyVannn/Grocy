@@ -28,3 +28,15 @@ export interface GroceryList {
   createdAt?: number;
   updatedAt?: number;
 }
+
+export interface Grocery {
+  groceryId: string;
+  listId: string;
+  name: string;
+  category: string;
+  quantity: string;
+  price: number;
+  owners: string[];
+  createdAt?: number;
+  updatedAt?: number;
+}
