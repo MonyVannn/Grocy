@@ -15,3 +15,16 @@ export interface Member {
   role: string;
   createdAt?: number;
 }
+
+export interface GroceryList {
+  listId: string;
+  userId: string;
+  date: number;
+  shopperId: string;
+  note?: string;
+  itemsAmount: number;
+  totalPrice: number;
+  items: string[];
+  createdAt?: number;
+  updatedAt?: number;
+}

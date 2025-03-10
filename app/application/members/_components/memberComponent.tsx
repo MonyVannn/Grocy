@@ -113,8 +113,11 @@ export default function MemberComponent({
       return;
     }
 
+    const memberId =
+      Date.now().toString(36) + Math.random().toString(36).substr(2);
+
     const memberToAdd = {
-      memberId: (members.length + 1).toString(),
+      memberId: memberId,
       memberName: newMember.name.trim(),
       memberEmail: newMember.email.trim(),
       role: newMember.role,
@@ -124,7 +127,7 @@ export default function MemberComponent({
     try {
       // Call the addMember mutation
       await convex.mutation(api.members.addMember, {
-        memberId: (convexMembers.length + 1).toString(), // Ensure this is a string
+        memberId: memberId, // Ensure this is a string
         userId: user.userId, // Replace with the actual user ID
         memberName: newMember.name.trim(),
         memberEmail: newMember.email.trim(),

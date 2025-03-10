@@ -8,7 +8,7 @@ import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Grocy Dashboard",
+  title: "Grocy",
   description: "Track and manage your family's grocery expenses",
 };
 
