@@ -22,56 +22,56 @@ export const HighlighBlocks = () => {
       <HighlightBlock
         Icon={FiDollarSign}
         iconClassName="text-green-500"
-        title="Save on planning"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Expense Tracking Made Simple"
+        subtitle="Keep track of all grocery expenses in one place, allowing for better budgeting and financial planning."
       />
       <HighlightBlock
         Icon={FiArrowUpRight}
         iconClassName="text-pink-500"
-        title="Grow your margins"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Fair Cost Sharing"
+        subtitle="Automatically calculate and split grocery costs among family members or roommates, ensuring everyone contributes fairly."
       />
       <HighlightBlock
         Icon={FiSmile}
         iconClassName="text-blue-500"
-        title="Increase productivity"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Collaborative Meal Planning"
+        subtitle="Plan meals together with your group, making it easy to coordinate shopping and cooking efforts."
       />
       <HighlightBlock
         Icon={FiCoffee}
         iconClassName="text-orange-500"
-        title="No more late nights"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Real-Time Updates"
+        subtitle="Receive real-time updates on grocery lists and expenses, so everyone stays informed and involved."
       />
       <HighlightBlock
         Icon={FiFeather}
         iconClassName="text-zinc-500"
-        title="Take better notes"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Customizable Ownership"
+        subtitle="Assign ownership of grocery items to specific members, making it clear who is responsible for what."
       />
       <HighlightBlock
         Icon={FiInbox}
         iconClassName="text-purple-500"
-        title="Reach inbox zero"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Analytics Dashboard"
+        subtitle="Gain insights into your spending habits with an analytics dashboard that tracks total expenses, average spending, and individual contributions."
       />
       <HighlightBlock
         Icon={FiMove}
         iconClassName="text-fuchsia-500"
-        title="Remain flexible"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="User-Friendly Interface"
+        subtitle="Enjoy a clean and intuitive interface that makes grocery management accessible for everyone, regardless of tech-savviness."
       />
       <HighlightBlock
         Icon={FiClipboard}
         iconClassName="text-red-500"
-        title="Stay on track"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Recipe Management (Future Feature)"
+        subtitle="Easily save and share recipes, linking them to grocery items for a seamless cooking experience."
       />
       <HighlightBlock
         Icon={FiRepeat}
         iconClassName="text-yellow-500"
-        title="Repeat what works"
-        subtitle="Lorem ipsum dolor sit amet consectetur adipisicing elit."
+        title="Mobile Accessibility"
+        subtitle="Access Grocy on your mobile device, allowing you to manage groceries and expenses on the go."
       />
     </>
   );

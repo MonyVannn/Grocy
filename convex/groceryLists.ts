@@ -27,6 +27,7 @@ export const addList = mutation({
         date: args.date,
         shopperId: shopper?.memberId,
         note: args.note,
+        isPaid: false,
         itemsAmount: 0,
         totalPrice: 0,
         items: [],

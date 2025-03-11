@@ -14,10 +14,12 @@ export const FeatureToggles = () => {
 
   return (
     <section className="relative mx-auto max-w-6xl px-2 md:px-4">
-      <SectionHeading>Show the people what your product does</SectionHeading>
+      <SectionHeading>
+        All the features you need to manage your groceries
+      </SectionHeading>
       <SectionSubheading>
-        It should be very clear who your product is for and what problem it
-        solves for them.
+        Choose a feature to learn more about it and how it can help you manage
+        your groceries.
       </SectionSubheading>
       <div className="w-full">
         <div className="mb-9 grid grid-cols-2 gap-4 sm:grid-cols-4">

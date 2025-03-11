@@ -7,9 +7,9 @@ export const Stats = () => {
   return (
     <section className="mx-auto max-w-5xl px-4">
       <div className="flex flex-col items-center justify-center gap-12 sm:flex-row sm:gap-0">
-        <Stat num={12} suffix="X" subheading="Less monthly overhead" />
-        <Stat num={100} suffix="%+" subheading="Increase in retention" />
-        <Stat num={100} suffix="M" subheading="Tasks tracked so far" />
+        <Stat num={1400} suffix="+" subheading="Active Family Members" />
+        <Stat num={2500} suffix="+" subheading="Grocery Items Managed" />
+        <Stat num={15000} suffix="$" subheading="Total Expenses Tracked" />
       </div>
     </section>
   );

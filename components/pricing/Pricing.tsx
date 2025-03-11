@@ -17,53 +17,52 @@ export const Pricing = () => {
         <PriceColumn
           title="Individuals"
           price="0"
-          statement="For individuals looking to up their productivity gains. Free forever."
+          statement="Perfect for individuals managing their own groceries. Free forever."
           items={[
             {
-              children: "1 Team Member",
+              children: "1 User Account",
               checked: true,
             },
             {
-              children: "3 Boards",
+              children: "Basic Grocery Management",
               checked: true,
             },
             {
-              children: "5 Workflows",
+              children: "Expense Tracking",
               checked: true,
             },
             {
-              children: "Upgraded Support",
+              children: "Limited Support",
               checked: false,
             },
             {
-              children: "Custom Branding",
+              children: "No Custom Branding",
               checked: false,
             },
             {
-              children: "Self Host",
+              children: "No Self-Hosting",
               checked: false,
             },
           ]}
         />
         <PriceColumn
-          title="Teams"
+          title="Families"
           price={selected === "monthly" ? "12" : "8"}
-          statement="For teams looking to scale their team efficiently. Stay on track."
+          statement="Ideal for families sharing groceries and expenses. Stay organized together."
           highlight
           items={[
             {
-              children: "∞ Team Members",
+              children: "Up to 5 Family Members",
               checked: true,
             },
             {
-              children: "∞ Boards",
+              children: "Unlimited Grocery Lists",
               checked: true,
             },
             {
-              children: "∞ Workflows",
+              children: "Expense Splitting",
               checked: true,
             },
-
             {
               children: "Upgraded Support",
               checked: true,
@@ -73,31 +72,30 @@ export const Pricing = () => {
               checked: false,
             },
             {
-              children: "Self Host",
+              children: "No Self-Hosting",
               checked: false,
             },
           ]}
         />
         <PriceColumn
-          title="Enterprise"
+          title="Groups & Teams"
           price={selected === "monthly" ? "24" : "16"}
-          statement="For enterprises looking to see new heights. Manage without the stress"
+          statement="For larger groups or teams looking to manage groceries efficiently."
           items={[
             {
-              children: "∞ Team Members",
+              children: "Unlimited Team Members",
               checked: true,
             },
             {
-              children: "∞ Boards",
+              children: "Unlimited Grocery Lists",
               checked: true,
             },
             {
-              children: "∞ Workflows",
+              children: "Advanced Expense Tracking",
               checked: true,
             },
-
             {
-              children: "Enterprise Support",
+              children: "Priority Support",
               checked: true,
             },
             {
@@ -105,7 +103,7 @@ export const Pricing = () => {
               checked: true,
             },
             {
-              children: "Self Host",
+              children: "Self-Hosting Available",
               checked: true,
             },
           ]}

@@ -20,10 +20,10 @@ export const BenefitsGrid = () => {
       className="relative mx-auto grid max-w-6xl grid-cols-3 gap-4 px-2 md:px-4"
     >
       <div className="col-span-3">
-        <SectionHeading>The clear benefits of X</SectionHeading>
+        <SectionHeading>The clear benefits of Grocy</SectionHeading>
         <SectionSubheading>
-          Features are good, benefits are even better! Here&apos;s a made up
-          list for reference.
+          Grocy is a powerful tool that helps you manage your groceries and
+          expenses with ease. Here are some of the benefits you can expect.
         </SectionSubheading>
       </div>
       <IntegrationsBlock />
@@ -31,7 +31,7 @@ export const BenefitsGrid = () => {
       <HighlighBlocks />
       <div className="col-span-3 mt-6 flex justify-center">
         <Button intent="outline">
-          <span className="font-bold">Get started - </span> no CC required
+          <span className="font-bold">Get started - </span> for free
         </Button>
       </div>
     </motion.section>

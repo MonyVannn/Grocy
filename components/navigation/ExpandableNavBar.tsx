@@ -9,6 +9,8 @@ import { MobileLinks } from "./MobileLinks";
 import { Announcement } from "./Announcement";
 import { Button } from "../shared/Button";
 import Link from "next/link";
+import { UserButton } from "@clerk/nextjs";
+import { BsFillArrowRightSquareFill } from "react-icons/bs";
 
 type LinkType = {
   title: string;
@@ -52,17 +54,27 @@ export const ExpandableNavBar = ({
                 activeSublinks={activeSublinks}
               />
             </div>
-            <Link href={login ? `/application/dashboard` : `/sign-in`}>
-              <Button
-                className="hidden md:block cursor-pointer"
-                intent="secondary"
-                size="small"
-              >
-                <span className="font-bold">
-                  {login ? "Dashboard" : "Login"}{" "}
-                </span>
-              </Button>
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href={login ? `/application/dashboard` : `/sign-in`}>
+                <Button
+                  className="hidden md:block cursor-pointer"
+                  intent="secondary"
+                  size="small"
+                >
+                  <span className="font-bold">
+                    {login ? (
+                      <span className="flex items-center gap-2">
+                        Dashboard
+                        <BsFillArrowRightSquareFill className="inline-block ml-1" />
+                      </span>
+                    ) : (
+                      "Login"
+                    )}{" "}
+                  </span>
+                </Button>
+              </Link>
+              {login && <UserButton />}
+            </div>
             <button
               onClick={() => setMobileNavOpen((pv) => !pv)}
               className="mt-0.5 block text-2xl md:hidden"

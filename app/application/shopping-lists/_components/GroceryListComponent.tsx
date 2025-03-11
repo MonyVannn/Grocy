@@ -58,6 +58,7 @@ import {
 import { GroceryList, Member, User } from "@/app/types";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
 
 export default function GroceryLists({
   user,
@@ -153,6 +154,7 @@ export default function GroceryLists({
       date: new Date(newList.date).getTime() + 86400000, // Add one day (in milliseconds)
       note: newList.note || "Grocery shopping",
       shopperId: newList.shopperId,
+      isPaid: false,
       itemsAmount: 0,
       totalPrice: 0,
       items: [],
@@ -471,6 +473,7 @@ export default function GroceryLists({
                       <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </TableHead>
+                  <TableHead>Payment</TableHead>
                   <TableHead>Note</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -478,7 +481,7 @@ export default function GroceryLists({
               <TableBody>
                 {sortedLists.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="h-24 text-center">
+                    <TableCell colSpan={8} className="h-24 text-center">
                       No grocery lists found.
                     </TableCell>
                   </TableRow>
@@ -508,6 +511,13 @@ export default function GroceryLists({
                       </TableCell>
                       <TableCell>{list.itemsAmount}</TableCell>
                       <TableCell>${list.totalPrice.toFixed(2)}</TableCell>
+                      <TableCell>
+                        {list.isPaid ? (
+                          <Badge variant="default">Paid</Badge>
+                        ) : (
+                          <Badge variant="outline">Pending</Badge>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <span className="line-clamp-1">{list.note}</span>
                       </TableCell>

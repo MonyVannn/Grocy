@@ -22,6 +22,7 @@ export interface GroceryList {
   date: number;
   shopperId: string;
   note?: string;
+  isPaid: boolean;
   itemsAmount: number;
   totalPrice: number;
   items: string[];
@@ -37,6 +38,43 @@ export interface Grocery {
   quantity: string;
   price: number;
   owners: string[];
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export interface ExpenseList {
+  listId: string;
+  userId: string;
+  expenseListId: string;
+  payerId: string;
+  listDate: number;
+  note?: string;
+  isPaid: boolean;
+  itemsAmount: number;
+  totalPrice: number;
+  createdAt?: number;
+  updatedAt?: number;
+}
+
+export interface Expense {
+  expenseId: string;
+  listId: string;
+  totalAmount: number;
+  totalTax: number;
+  items: [
+    {
+      itemName: string;
+      category: string;
+      quantity: string;
+      price: number;
+      tax: number;
+      totalDue: number;
+      owners: {
+        memberId: string;
+        amount: number;
+      };
+    },
+  ];
   createdAt?: number;
   updatedAt?: number;
 }

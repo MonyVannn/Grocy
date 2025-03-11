@@ -615,9 +615,9 @@ export default function GroceryListDetail({
                       >
                         <Checkbox
                           id={`owner-${owner.memberName}`}
-                          checked={newItem.owners.includes(owner.memberName)}
+                          checked={newItem.owners.includes(owner.memberId)}
                           onCheckedChange={() =>
-                            handleToggleOwner(owner.memberName)
+                            handleToggleOwner(owner.memberId)
                           }
                         />
                         <Label
@@ -764,18 +764,21 @@ export default function GroceryListDetail({
                       <TableCell>
                         <AvatarGroup className="justify-start" limit={3}>
                           {item.owners.map((owner: string) => {
-                            const ownerData =
-                              owners.find((o) => o.name === owner) || owners[0];
+                            const ownerData = members.filter(
+                              (m) => m.memberId === owner
+                            )[0];
                             return (
                               <Avatar
                                 key={owner}
                                 className="h-6 w-6 border-2 border-background"
                               >
                                 <AvatarImage
-                                  src={ownerData.avatar}
-                                  alt={owner}
+                                  src={ownerData.memberName}
+                                  alt={ownerData.memberName}
                                 />
-                                <AvatarFallback>{owner[0]}</AvatarFallback>
+                                <AvatarFallback>
+                                  {ownerData.memberName[0]}
+                                </AvatarFallback>
                               </Avatar>
                             );
                           })}

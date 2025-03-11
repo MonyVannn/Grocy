@@ -1,60 +1,154 @@
-import Image from "next/image";
-import { AiFillBug } from "react-icons/ai";
-import { BsFillCursorFill } from "react-icons/bs";
+"use client";
+
 import {
-  FiAlignLeft,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
+import {
   FiAnchor,
-  FiArrowRight,
+  FiBarChart,
   FiCheck,
   FiChevronDown,
   FiChevronRight,
-  FiClock,
-  FiEdit,
+  FiDollarSign,
   FiEye,
-  FiItalic,
 } from "react-icons/fi";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+
+const randomMembers = [
+  {
+    memberId: 1,
+    memberName: "John Doe",
+    memberEmail: "johndoe@example.com",
+    role: "admin",
+    createdAt: "2024-01-15",
+  },
+  {
+    memberId: 2,
+    memberName: "Jane Smith",
+    memberEmail: "janesmith@example.com",
+    role: "member",
+    createdAt: "2024-02-10",
+  },
+  {
+    memberId: 3,
+    memberName: "Alice Johnson",
+    memberEmail: "alicej@example.com",
+    role: "member",
+    createdAt: "2024-03-05",
+  },
+];
 
 const IssuesComponent = () => {
   return (
-    <div className="h-full w-full p-4">
-      <div className="mb-6 flex items-center gap-1.5 text-sm">
-        <span className="text-zinc-600">SEO Team</span>
-        <FiChevronRight />
-        <div className="flex items-center gap-1 rounded bg-red-100 px-1.5 py-0.5 text-red-900">
-          <AiFillBug />
-          <span>Bugs</span>
+    <Card>
+      <CardHeader>
+        <CardTitle>Family Members</CardTitle>
+        <CardDescription>
+          Manage your family members and their access roles
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Member</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Date Added</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {randomMembers.map((member) => (
+                <TableRow key={member.memberId}>
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar>
+                        <AvatarImage
+                          src="/avatar-placeholder.png"
+                          alt={member.memberName}
+                        />
+                        <AvatarFallback>
+                          {member.memberName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium">{member.memberName}</div>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>{member.memberEmail || "—"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={member.role === "admin" ? "default" : "outline"}
+                    >
+                      {member.role === "admin" ? "Admin" : "Member"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{member.createdAt}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Remove
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
-      </div>
-      <div className="-ml-1.5 mb-4 flex items-center gap-1.5">
-        <Image
-          src="https://api.dicebear.com/8.x/notionists/svg"
-          alt="avatar"
-          className="ml-1.5 size-8 rounded bg-indigo-200 shadow-inner"
-        />
-        <div>
-          <span className="block text-sm font-medium">Andrea Smith</span>
-          <span className="block text-xs text-zinc-600">Site Reliability</span>
-        </div>
-      </div>
-      <div className="mb-1 line-clamp-1 text-xl font-medium">
-        Bot crawlers causing latency issues
-      </div>
-      <span className="line-clamp-3 text-sm leading-relaxed text-zinc-600">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Sed incidunt
-        iste molestiae distinctio assumenda quos consectetur laborum eaque autem
-        libero?
-      </span>
-      <div className="absolute bottom-0 left-0 right-0 flex items-center gap-1.5 bg-white/50 p-4 backdrop-blur">
-        <span className="flex w-fit items-center gap-1 rounded bg-yellow-100 px-1.5 py-0.5 text-sm text-yellow-900">
-          <FiClock />
-          <span>TODO</span>
-        </span>
-        <span className="flex w-fit items-center gap-1 rounded bg-zinc-200 px-1.5 py-0.5 text-sm text-zinc-900">
-          <FiArrowRight />
-          <span>Medium</span>
-        </span>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -65,7 +159,7 @@ const KanbanComponent = () => {
         <div className="flex items-center justify-between">
           <span className="flex w-fit items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-sm text-blue-900">
             <FiEye />
-            <span>Doing</span>
+            <span>Grocery Lists</span>
           </span>
           <FiChevronDown />
         </div>
@@ -79,7 +173,7 @@ const KanbanComponent = () => {
         <div className="flex items-center justify-between">
           <span className="green-yellow-900 flex w-fit items-center gap-1 rounded bg-green-100 px-1.5 py-0.5 text-sm">
             <FiCheck />
-            <span>Done</span>
+            <span>Completed Tasks</span>
           </span>
           <FiChevronDown />
         </div>
@@ -96,7 +190,7 @@ const KanbanComponent = () => {
 const BGTask = () => {
   return (
     <div className="w-full rounded-lg bg-white p-4 text-[0.5rem] text-zinc-400 shadow blur-[1px] sm:text-xs">
-      Lorem ipsum dolor sit amet consectetur adipisicing elit.
+      Manage your grocery items efficiently with Grocy.
     </div>
   );
 };
@@ -105,7 +199,7 @@ const OverlayTask = () => {
   return (
     <div className="absolute left-1/2 top-1/2 z-10 w-64 -translate-x-1/2 -translate-y-1/2 rotate-3 rounded-lg border-2 border-indigo-600 bg-white p-4 shadow-xl shadow-indigo-600/20">
       <div className="mb-2 flex items-center gap-1.5 text-xs">
-        <span className="text-zinc-600">Design Team</span>
+        <span className="text-zinc-600">Grocy Team</span>
         <FiChevronRight />
         <div className="flex items-center gap-1 rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-900">
           <FiAnchor />
@@ -113,9 +207,11 @@ const OverlayTask = () => {
         </div>
       </div>
       <span className="mb-0.5 block text-lg font-medium">
-        Launch landing page
+        Simplified Expense Tracking
       </span>
-      <span className="block text-sm text-zinc-600">December 4th, 2023</span>
+      <span className="block text-sm text-zinc-600">
+        Manage shared grocery expenses effortlessly.
+      </span>
     </div>
   );
 };
@@ -170,49 +266,66 @@ const GanttComponent = () => {
   );
 };
 
-const DocumentationComponent = () => {
+const trendData = [
+  { name: "Week 1", spending: 100 },
+  { name: "Week 2", spending: 150 },
+  { name: "Week 3", spending: 110 },
+  { name: "Week 4", spending: 250 },
+  { name: "Week 5", spending: 75 },
+];
+
+const AnalyticsComponent = () => {
   return (
     <div className="relative p-4">
-      <div className="mb-4 flex items-center gap-1.5">
-        <span className="block w-fit rounded bg-zinc-200 p-2">
-          <FiEye />
-        </span>
-        <span className="block w-fit rounded bg-zinc-200 p-2">
-          <FiEdit />
-        </span>
-        <span className="block w-fit rounded bg-zinc-200 p-2">
-          <FiAlignLeft />
-        </span>
-        <span className="block w-fit rounded bg-zinc-200 p-2">
-          <FiItalic />
-        </span>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2">
+        {/* Total Expenses Card */}
+        <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-md">
+          <div className="flex items-center">
+            <FiDollarSign className="text-3xl text-green-500" />
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold">Total Expenses</h3>
+              <p className="text-sm text-zinc-600">$500.00</p>{" "}
+              {/* Replace with dynamic data */}
+            </div>
+          </div>
+        </div>
+
+        {/* Average Spending Card */}
+        <div className="flex items-center justify-between rounded-lg bg-white p-4 shadow-md">
+          <div className="flex items-center">
+            <FiBarChart className="text-3xl text-blue-500" />
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold">Average Spending</h3>
+              <p className="text-sm text-zinc-600">$125.00</p>{" "}
+              {/* Replace with dynamic data */}
+            </div>
+          </div>
+        </div>
+
+        {/* Spending Trends Card with Line Trend Graph */}
+        <div className="flex flex-col items-center justify-between rounded-lg bg-white p-4 shadow-md col-span-2">
+          <div className="flex items-center">
+            <FiBarChart className="text-3xl text-purple-500" />
+            <div className="ml-3">
+              <h3 className="text-lg font-semibold">Spending Trends</h3>
+              <p className="text-sm text-zinc-600">View detailed trends</p>
+            </div>
+          </div>
+          <LineChart width={350} height={200} data={trendData} className="mt-4">
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="spending"
+              stroke="#8884d8"
+              activeDot={{ r: 8 }}
+            />
+          </LineChart>
+        </div>
       </div>
-      <div className="mb-4 flex items-center gap-1.5">
-        <span className="block w-fit rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-900">
-          John Smith
-        </span>
-        <span className="block w-fit rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-900">
-          Beth Davis
-        </span>
-      </div>
-      <span className="relative mb-1.5 inline-block text-lg font-medium">
-        AWS Migration Technical Proposal
-        <span className="inline-block scale-150 animate-pulse text-green-600">
-          |
-        </span>
-        <BsFillCursorFill className="inline-block translate-y-full -rotate-90 text-3xl text-green-600" />
-      </span>
-      <br />
-      <span className="relative text-xs text-zinc-600 sm:text-sm">
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dicta hic quo
-        a officiis. Mollitia architecto sed debitis laboriosam repudiandae
-        veniam quidem nesciunt beatae quis. Esse placeat quasi inventore
-        blanditiis laboriosam?{" "}
-        <span className="inline-block scale-150 animate-pulse text-blue-600">
-          |
-        </span>
-        <BsFillCursorFill className="inline-block translate-y-full -rotate-90 text-3xl text-blue-600" />
-      </span>
     </div>
   );
 };
@@ -220,34 +333,34 @@ const DocumentationComponent = () => {
 export const data = [
   {
     id: 1,
-    title: "Issues",
+    title: "Members",
     Component: IssuesComponent,
-    cardTitle: "Title for Issues feature",
+    cardTitle: "Manage Your Team",
     cardSubtitle:
-      "Explain what the Issues feature does and why it's different or better than your competitors.",
+      "Add members to your family group and assign them grocery items to help manage shared expenses.",
   },
   {
     id: 2,
-    title: "Kanban",
+    title: "Grocery Lists",
     Component: KanbanComponent,
-    cardTitle: "Title for Kanban feature",
+    cardTitle: "Organize Your Groceries",
     cardSubtitle:
-      "Explain what the Kanban feature does and why it's different or better than your competitors.",
+      "Create and manage grocery lists effortlessly, keeping track of what you need to buy.",
   },
   {
     id: 3,
-    title: "Gantt",
+    title: "Expense Tracking",
     Component: GanttComponent,
-    cardTitle: "Title for Gantt feature",
+    cardTitle: "Track Your Spending",
     cardSubtitle:
-      "Explain what the Gantt feature and why it's different or better than your competitors.",
+      "Easily monitor your grocery expenses and see how much each member contributes.",
   },
   {
     id: 4,
-    title: "Documentation",
-    Component: DocumentationComponent,
-    cardTitle: "Title for Documentation feature",
+    title: "Analytics Dashboard",
+    Component: AnalyticsComponent,
+    cardTitle: "Insights at a Glance",
     cardSubtitle:
-      "Explain what the Documentation feature and why it's different or better than your competitors.",
+      "Utilize the analytics dashboard to track spending patterns and manage your grocery budget effectively.",
   },
 ];

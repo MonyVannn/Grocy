@@ -1,6 +1,4 @@
 import { BenefitsGrid } from "@/components/benefits-grid/BenefitsGrid";
-import { BlogCarousel } from "@/components/blog/BlogCarousel";
-import { EmailCapture } from "@/components/email-capture/EmailCapture";
 import { FeatureToggles } from "@/components/feature-toggles/FeatureToggles";
 import { FinalCTA } from "@/components/final-cta/FinalCTA";
 import { Footer } from "@/components/footer/Footer";
@@ -28,9 +26,9 @@ export default async function Home() {
         <Supports />
         <BenefitsGrid />
         <Pricing />
-        <BlogCarousel />
+        {/* <BlogCarousel /> */}
       </div>
-      <EmailCapture />
+      {/* <EmailCapture /> */}
       <FinalCTA />
       <Footer />
     </>

@@ -1,13 +1,7 @@
 import React from "react";
-import {
-  FiBell,
-  FiCheck,
-  FiChevronDown,
-  FiList,
-  FiMessageCircle,
-  FiUser,
-} from "react-icons/fi";
+import { FiBell, FiChevronDown, FiUser } from "react-icons/fi";
 import { LogoSmall } from "../navigation/Logo";
+import { DollarSign, Home, ShoppingCart } from "lucide-react";
 
 export const MockupScreen = () => {
   return (
@@ -25,19 +19,22 @@ export const MockupScreen = () => {
       </div>
       <div className="relative z-0 grid h-full w-full grid-cols-[100px,_1fr] overflow-hidden rounded-t-lg bg-white md:grid-cols-[150px,_1fr]">
         <div className="h-full border-r border-zinc-300 p-2">
-          <LogoSmall />
+          <div className="flex items-center gap-2">
+            <LogoSmall />
+            <h1 className="text-sm text-zinc-900">Grocy</h1>
+          </div>
           <div className="mt-3 space-y-1.5">
             <span className="flex items-center gap-1.5 text-xs text-indigo-600">
-              <FiMessageCircle />
-              <span>Messages</span>
+              <Home size={12} />
+              <span>Dashboard</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs">
-              <FiCheck />
-              <span>Tasks</span>
+              <ShoppingCart size={12} />
+              <span>Grocery Lists</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs">
-              <FiList />
-              <span>Board</span>
+              <DollarSign size={12} />
+              <span>Expenses</span>
             </span>
           </div>
         </div>

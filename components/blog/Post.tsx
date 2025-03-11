@@ -12,6 +12,8 @@ export const Post = ({ imgUrl, tag, title, description }: PostType) => {
     >
       <Image
         src={imgUrl}
+        width={200}
+        height={200}
         className="mb-3 h-[200px] w-full rounded-md border-2 border-zinc-900 bg-zinc-300 object-cover shadow-[0px_6px_0px_rgb(24,_24,_27)] transition-all hover:translate-y-1.5 hover:shadow-[0px_0px_0px_rgb(24,_24,_27)]"
         alt={`An image for a fake blog post titled ${title}`}
       />

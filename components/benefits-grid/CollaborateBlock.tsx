@@ -35,9 +35,10 @@ export const CollaborateBlock = () => (
         />
       </div>
       <div>
-        <CardTitle>Collaborate seamlessly</CardTitle>
+        <CardTitle>Streamlined Grocery Management</CardTitle>
         <CardSubtitle>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit.
+          Easily create and manage grocery lists, ensuring you never forget
+          essential items for your meals.
         </CardSubtitle>
       </div>
     </div>

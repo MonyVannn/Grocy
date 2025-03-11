@@ -94,110 +94,110 @@ const Testimonial = ({
 
 export const OPTIONS = [
   {
-    title: "Startups",
+    title: "Families",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Jeff"
-        name="Jeff W."
-        title="CEO"
-        company="The Company"
-        content="Lorem ipsum dolor sit, amet consectetur adipisicing elit. Odit qui unde perspiciatis nam in maxime impedit repudiandae veniam quibusdam enim, velit minus necessitatibus quaerat quos similique, odio earum!"
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Family"
+        name="Sarah L."
+        title="Mom"
+        company="Family of Four"
+        content="Grocy has transformed how we manage our groceries! Now, everyone in the family knows what we need, and we can easily split the costs."
       />
     ),
   },
   {
-    title: "YouTubers",
+    title: "Roommates",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Dan"
-        name="Dan S."
-        title="YouTuber"
-        company="@TheChannel"
-        content="Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis qui fuga, deserunt doloribus, vero autem libero sed dolorum nostrum quidem in soluta magni eos excepturi."
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Roommate"
+        name="Mike T."
+        title="Student"
+        company="College Apartment"
+        content="As a college student, Grocy helps me and my roommates keep track of our shared groceries and expenses. It's made cooking together so much easier!"
       />
     ),
   },
   {
-    title: "Bloggers",
+    title: "Friends",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Carey"
-        name="Carey J."
-        title="Writer"
-        company="theblog.com"
-        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. At, quo harum."
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Friends"
+        name="Emily R."
+        title="Event Organizer"
+        company="Weekend Gatherings"
+        content="Grocy is perfect for our friend group! We can plan meals, share grocery costs, and ensure everyone contributes fairly."
       />
     ),
   },
   {
-    title: "Authors",
+    title: "Chefs",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Dani"
-        name="Moriah H."
-        title="Author"
-        company="Books About Things"
-        content="Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis qui fuga, deserunt doloribus, vero autem libero sed dolorum nostrum quidem in soluta magni eos excepturi."
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Chef"
+        name="Carlos M."
+        title="Home Chef"
+        company="Culinary Enthusiast"
+        content="I love using Grocy to manage my ingredients and track expenses for my cooking projects. It keeps everything organized!"
       />
     ),
   },
   {
-    title: "Designers",
+    title: "Budget-Conscious Shoppers",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Phil"
-        name="Phil K."
-        title="UI/UX Design"
-        company="The Other Company"
-        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. Ex a laborum earum quo unde pariatur consequuntur molestias!"
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Budget"
+        name="Linda K."
+        title="Financial Advisor"
+        company="Smart Spending"
+        content="Grocy helps me keep my grocery budget in check. I can see where my money goes and make adjustments as needed."
       />
     ),
   },
   {
-    title: "Consultants",
+    title: "Meal Planners",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Stetson"
-        name="Stetson R."
-        title="Consultant"
-        company="The Company Company"
-        content="Lorem ipsum dolor sit amet consectetur adipisicing elit. Labore, dicta. Doloremque, hic magnam? Eveniet quisquam porro rerum, voluptatem et aliquam eaque nesciunt quod magni veritatis tempora ducimus!"
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=MealPlanner"
+        name="Tom H."
+        title="Nutritionist"
+        company="Healthy Living"
+        content="With Grocy, I can plan meals for the week and ensure I have all the ingredients on hand. It’s a game changer for healthy eating!"
       />
     ),
   },
   {
-    title: "Photographers",
+    title: "Event Hosts",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Patty"
-        name="Patty G."
-        title="Photographer"
-        company="@ThePictureLady"
-        content="Lorem ipsum dolor sit amet, consectetur adipisicing elit. Corporis, quam? Quia veniam cupiditate officiis."
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Event"
+        name="Jessica P."
+        title="Party Planner"
+        company="Social Gatherings"
+        content="Grocy makes it easy to manage groceries for events. I can track who brings what and keep costs organized!"
       />
     ),
   },
   {
-    title: "Videographers",
+    title: "Community Groups",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Kert"
-        name="Kert Y."
-        title="Film Maker"
-        company="@MovieDude"
-        content="Lorem ipsum dolor, sit amet consectetur adipisicing elit. Iste, eius corrupti! Alias dolore quibusdam ipsum magnam delectus nulla sint harum ab?"
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Community"
+        name="David W."
+        title="Community Organizer"
+        company="Local Events"
+        content="Using Grocy for our community potlucks has been fantastic! Everyone can see what’s needed and contribute accordingly."
       />
     ),
   },
   {
-    title: "Local Business",
+    title: "Local Businesses",
     Content: () => (
       <Testimonial
-        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Joanne"
+        imgSrc="https://api.dicebear.com/8.x/notionists/svg?seed=Business"
         name="Joanne F."
         title="Business Owner"
         company="The Local Company"
-        content="Lorem ipsum dolor sit, amet consectetur adipisicing elit. Blanditiis qui fuga, deserunt doloribus, vero autem libero sed dolorum nostrum quidem in soluta magni eos excepturi."
+        content="Grocy helps us manage our team lunches and shared supplies efficiently. It’s a great tool for any small business!"
       />
     ),
   },
