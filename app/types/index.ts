@@ -25,7 +25,17 @@ export interface GroceryList {
   isPaid: boolean;
   itemsAmount: number;
   totalPrice: number;
-  items: string[];
+  items: [
+    {
+      listId: string;
+      groceryId: string;
+      name: string;
+      category: string;
+      quantity: string;
+      price: number;
+      owners: string[];
+    },
+  ];
   createdAt?: number;
   updatedAt?: number;
 }
@@ -63,7 +73,7 @@ export interface Expense {
   totalTax: number;
   items: [
     {
-      itemName: string;
+      name: string;
       category: string;
       quantity: string;
       price: number;

@@ -104,6 +104,8 @@ export default function ExpenseListComponent({
     const selectedList = groceryLists.find(
       (list) => list.listId === selectedGroceryList
     );
+
+    console.log(selectedList);
     if (!selectedList) return;
 
     const existingExpense = expenses.find(
@@ -129,6 +131,7 @@ export default function ExpenseListComponent({
     };
 
     try {
+      console.log("Adding expense list", selectedList);
       // call the addExpenseList mutation
       await convex.mutation(api.expenseLists.addExpenseList, {
         expenseListId: selectedGroceryList,
@@ -139,6 +142,26 @@ export default function ExpenseListComponent({
         note: newExpenseNote || selectedList.note || "",
         itemsAmount: selectedList.itemsAmount,
         totalPrice: selectedList.totalPrice,
+      });
+
+      // call the addExpenses mutation
+      await convex.mutation(api.expenses.addExpenses, {
+        expenseId: selectedGroceryList,
+        listId: selectedGroceryList,
+        totalAmount: selectedList.totalPrice,
+        totalTax: 0,
+        items: selectedList.items.map((item) => ({
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity,
+          price: item.price,
+          tax: 0,
+          totalDue: item.price,
+          owners: item.owners.map((owner) => ({
+            memberId: owner,
+            amount: item.price / item.owners.length,
+          })),
+        })),
       });
 
       setExpenses([listToAdd, ...expenses]);
@@ -165,10 +188,12 @@ export default function ExpenseListComponent({
         expenseListId: id,
       });
 
+      toast.success("Expense deleted successfully");
       setExpenses(updatedLists);
       setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting grocery list:", error);
+      toast.error("Failed to delete expense. Please try again.");
       return;
     }
   };

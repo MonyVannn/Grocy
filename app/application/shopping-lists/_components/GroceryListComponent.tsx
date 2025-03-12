@@ -157,7 +157,17 @@ export default function GroceryLists({
       isPaid: false,
       itemsAmount: 0,
       totalPrice: 0,
-      items: [],
+      items: [
+        {
+          listId: newListId,
+          groceryId: "",
+          name: "",
+          category: "",
+          quantity: "",
+          price: 0,
+          owners: [],
+        },
+      ],
     };
 
     try {

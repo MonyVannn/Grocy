@@ -1,10 +1,11 @@
 "use client";
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,213 +23,91 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Expense, ExpenseList, Member } from "@/app/types";
 
-// Sample data (as before)
-const sampleMembers = [
-  {
-    memberId: "m1",
-    userId: "u1",
-    memberName: "Sarah",
-    memberEmail: "sarah@example.com",
-    role: "admin",
-  },
-  {
-    memberId: "m2",
-    userId: "u1",
-    memberName: "Michael",
-    memberEmail: "michael@example.com",
-    role: "member",
-  },
-  {
-    memberId: "m3",
-    userId: "u1",
-    memberName: "Emma",
-    memberEmail: "emma@example.com",
-    role: "member",
-  },
-];
-
-const sampleGroceryLists = [
-  {
-    listId: "l1",
-    userId: "u1",
-    date: Date.now(),
-    shopperId: "m1",
-    isPaid: true,
-    note: "Weekly shopping",
-    itemsAmount: 5,
-    totalPrice: 45.5,
-    items: ["g1", "g2", "g3", "g4", "g5"],
-  },
-  {
-    listId: "l2",
-    userId: "u1",
-    date: Date.now() - 7 * 24 * 60 * 60 * 1000, // 1 week ago
-    shopperId: "m2",
-    isPaid: true,
-    note: "Quick run",
-    itemsAmount: 3,
-    totalPrice: 15.75,
-    items: ["g6", "g7", "g8"],
-  },
-];
-
-const sampleGroceries = [
-  {
-    groceryId: "g1",
-    listId: "l1",
-    name: "Milk",
-    category: "Dairy",
-    quantity: "1 gallon",
-    price: 3.99,
-    owners: ["m1", "m2"],
-  },
-  {
-    groceryId: "g2",
-    listId: "l1",
-    name: "Eggs",
-    category: "Dairy",
-    quantity: "1 dozen",
-    price: 2.99,
-    owners: ["m1", "m2", "m3"],
-  },
-  {
-    groceryId: "g3",
-    listId: "l1",
-    name: "Bread",
-    category: "Bakery",
-    quantity: "1 loaf",
-    price: 2.49,
-    owners: ["m1", "m3"],
-  },
-  {
-    groceryId: "g4",
-    listId: "l1",
-    name: "Apples",
-    category: "Fruits",
-    quantity: "3 lbs",
-    price: 4.99,
-    owners: ["m2", "m3"],
-  },
-  {
-    groceryId: "g5",
-    listId: "l1",
-    name: "Chicken",
-    category: "Meat",
-    quantity: "2 lbs",
-    price: 8.99,
-    owners: ["m1", "m2", "m3"],
-  },
-  {
-    groceryId: "g6",
-    listId: "l2",
-    name: "Yogurt",
-    category: "Dairy",
-    quantity: "32 oz",
-    price: 3.5,
-    owners: ["m2", "m3"],
-  },
-  {
-    groceryId: "g7",
-    listId: "l2",
-    name: "Bananas",
-    category: "Fruits",
-    quantity: "1 bunch",
-    price: 1.99,
-    owners: ["m1", "m2", "m3"],
-  },
-  {
-    groceryId: "g8",
-    listId: "l2",
-    name: "Cereal",
-    category: "Breakfast",
-    quantity: "1 box",
-    price: 3.99,
-    owners: ["m2"],
-  },
-];
+interface ExpenseSheet {
+  items: any;
+  totals: any;
+}
 
 export default function ExpenseDetailComponent({
-  expenseId,
+  expenses,
+  members,
+  expenseList,
 }: {
-  expenseId: string;
+  expenses: Expense;
+  members: Member[];
+  expenseList: ExpenseList;
 }) {
   const router = useRouter();
-  const [expense, setExpense] = useState<any>(null);
-  const [expenseSheet, setExpenseSheet] = useState<any>(null);
+  const [expense, setExpense] = useState<Expense>();
+  const [expenseSheet, setExpenseSheet] = useState<ExpenseSheet>();
 
   useEffect(() => {
-    const foundExpense = sampleGroceryLists.find(
-      (list) => list.listId === expenseId
-    );
-    if (foundExpense) {
-      setExpense(foundExpense);
+    setExpense(expenses);
 
-      const taxRate = 0.1; // 10% tax rate
-      const sheet = sampleGroceries
-        .filter((item) => item.listId === expenseId)
-        .map((item) => {
-          const tax = item.price * taxRate;
-          const totalDue = item.price + tax;
-          const memberContributions = sampleMembers.reduce(
-            (acc, member) => {
-              acc[member.memberId] = item.owners.includes(member.memberId)
-                ? totalDue / item.owners.length
-                : 0;
-              return acc;
-            },
-            {} as Record<string, number>
-          );
+    const taxRate = 0.0275; // 10% tax rate
+    const sheet = expenses.items.map((item) => {
+      const tax = taxRate * item.price; // Calculate the tax
+      const totalDue = item.totalDue + tax; // Use the total due from the item
 
-          return {
-            name: item.name,
-            category: item.category,
-            quantity: item.quantity,
-            totalPrice: item.price,
-            tax: tax,
-            ...memberContributions,
-            totalDue: totalDue,
-          } as Record<string, number> & {
-            name: string;
-            category: string;
-            quantity: string;
-            totalPrice: number;
-            tax: number;
-            totalDue: number;
-          };
-        });
-
-      const totals = sheet.reduce(
-        (acc, item) => {
-          acc.totalPrice += item.totalPrice;
-          acc.tax += item.tax;
-          sampleMembers.forEach((member) => {
-            acc[member.memberId] += item[member.memberId];
-          });
-          acc.totalDue += item.totalDue;
+      // Create a contributions object based on the owners
+      const memberContributions = members.reduce(
+        (acc, member) => {
+          const owner = Array.isArray(item.owners)
+            ? item.owners.find((o) => o.memberId === member.memberId)
+            : undefined;
+          acc[member.memberId] = owner ? owner.amount + tax : 0; // Use the amount contributed by the member
           return acc;
         },
-        {
-          totalPrice: 0,
-          tax: 0,
-          ...sampleMembers.reduce(
-            (acc, member) => ({ ...acc, [member.memberId]: 0 }),
-            {} as Record<string, number>
-          ),
-          totalDue: 0,
-        } as Record<string, number> & {
-          totalPrice: number;
-          tax: number;
-          totalDue: number;
-        }
+        {} as Record<string, number>
       );
 
-      setExpenseSheet({ items: sheet, totals });
-    } else {
-      // Expense not found, redirect back to expenses page
-      router.push("/application/expenses");
-    }
-  }, [expenseId, router]);
+      return {
+        name: item.name,
+        category: item.category,
+        quantity: item.quantity,
+        totalPrice: item.price,
+        tax: tax,
+        ...memberContributions,
+        totalDue: totalDue,
+      } as Record<string, number> & {
+        name: string;
+        category: string;
+        quantity: string;
+        totalPrice: number;
+        tax: number;
+        totalDue: number;
+      };
+    });
+
+    const totals = sheet.reduce(
+      (acc, item) => {
+        acc.totalPrice += item.totalPrice;
+        acc.tax += item.tax;
+        members.forEach((member) => {
+          acc[member.memberId] += item[member.memberId];
+        });
+        acc.totalDue += item.totalDue;
+        return acc;
+      },
+      {
+        totalPrice: 0,
+        tax: 0,
+        ...members.reduce(
+          (acc, member) => ({ ...acc, [member.memberId]: 0 }),
+          {} as Record<string, number>
+        ),
+        totalDue: 0,
+      } as Record<string, number> & {
+        totalPrice: number;
+        tax: number;
+        totalDue: number;
+      }
+    );
+
+    setExpenseSheet({ items: sheet, totals });
+  }, [expenses, members]);
 
   if (!expense || !expenseSheet) {
     return <div>Loading...</div>;
@@ -255,7 +134,7 @@ export default function ExpenseDetailComponent({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Expense Details</h1>
           <p className="text-muted-foreground">
-            {formatDate(expense.date)} - {expense.note}
+            {formatDate(expenseList.listDate)} - {expenseList.note}
           </p>
         </div>
       </div>
@@ -272,14 +151,14 @@ export default function ExpenseDetailComponent({
                 Total Amount
               </div>
               <div className="text-2xl font-bold">
-                ${expense.totalPrice.toFixed(2)}
+                ${expense.totalAmount.toFixed(2)}
               </div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">
                 Items
               </div>
-              <div className="text-2xl font-bold">{expense.itemsAmount}</div>
+              <div className="text-2xl font-bold">{expense.items.length}</div>
             </div>
             <div>
               <div className="text-sm font-medium text-muted-foreground">
@@ -287,18 +166,16 @@ export default function ExpenseDetailComponent({
               </div>
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={`/placeholder.svg?height=32&width=32`} />
                   <AvatarFallback>
                     {
-                      sampleMembers.find(
-                        (m) => m.memberId === expense.shopperId
-                      )?.memberName[0]
+                      members.find((m) => m.memberId === expenseList.payerId)
+                        ?.memberName[0]
                     }
                   </AvatarFallback>
                 </Avatar>
                 <span>
                   {
-                    sampleMembers.find((m) => m.memberId === expense.shopperId)
+                    members.find((m) => m.memberId === expenseList.payerId)
                       ?.memberName
                   }
                 </span>
@@ -308,8 +185,8 @@ export default function ExpenseDetailComponent({
               <div className="text-sm font-medium text-muted-foreground">
                 Status
               </div>
-              <Badge variant={expense.isPaid ? "default" : "secondary"}>
-                {expense.isPaid ? "Paid" : "Unpaid"}
+              <Badge variant={expenseList.isPaid ? "default" : "secondary"}>
+                {expenseList.isPaid ? "Paid" : "Unpaid"}
               </Badge>
             </div>
           </div>
@@ -333,7 +210,7 @@ export default function ExpenseDetailComponent({
                   <TableHead>Quantity</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Tax (10%)</TableHead>
-                  {sampleMembers.map((member) => (
+                  {members.map((member) => (
                     <TableHead key={member.memberId}>
                       {member.memberName}
                     </TableHead>
@@ -349,7 +226,7 @@ export default function ExpenseDetailComponent({
                     <TableCell>{item.quantity}</TableCell>
                     <TableCell>${item.totalPrice.toFixed(2)}</TableCell>
                     <TableCell>${item.tax.toFixed(2)}</TableCell>
-                    {sampleMembers.map((member) => (
+                    {members.map((member) => (
                       <TableCell key={member.memberId}>
                         ${item[member.memberId].toFixed(2)}
                       </TableCell>
@@ -365,7 +242,7 @@ export default function ExpenseDetailComponent({
                     ${expenseSheet.totals.totalPrice.toFixed(2)}
                   </TableCell>
                   <TableCell>${expenseSheet.totals.tax.toFixed(2)}</TableCell>
-                  {sampleMembers.map((member) => (
+                  {members.map((member) => (
                     <TableCell key={member.memberId}>
                       ${expenseSheet.totals[member.memberId].toFixed(2)}
                     </TableCell>

@@ -4,6 +4,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
+import { GroceryList } from "@/app/types";
 
 async function ExpenseListPage() {
   const user = await currentUser();
@@ -14,9 +15,9 @@ async function ExpenseListPage() {
 
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
-  const convexGroceryList = await convex.query(api.groceryLists.getLists, {
+  const convexGroceryList = (await convex.query(api.groceryLists.getLists, {
     userId: user?.id || "",
-  });
+  })) as unknown as GroceryList[];
 
   const convexExpenseLists = await convex.query(
     api.expenseLists.getExpenseLists,

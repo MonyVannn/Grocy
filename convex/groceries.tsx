@@ -33,7 +33,6 @@ export const addGrocery = mutation({
       price: args.price,
       owners: args.owners,
       createdAt: Date.now(),
-      updatedAt: Date.now(),
     });
 
     return grocery;

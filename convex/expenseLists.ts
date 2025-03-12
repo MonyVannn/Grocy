@@ -13,6 +13,18 @@ export const getExpenseLists = query({
   },
 });
 
+export const getExpenseListById = query({
+  args: { expenseListId: v.string() },
+  handler: async (ctx, args) => {
+    const expenseList = await ctx.db
+      .query("expenseLists")
+      .filter((q) => q.eq(q.field("expenseListId"), args.expenseListId))
+      .first();
+
+    return expenseList;
+  },
+});
+
 export const addExpenseList = mutation({
   args: {
     expenseListId: v.string(),

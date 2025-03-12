@@ -45,6 +45,17 @@ export const updateList = mutation({
     listId: v.string(),
     itemAmount: v.number(),
     totalPrice: v.number(),
+    items: v.array(
+      v.object({
+        listId: v.string(),
+        groceryId: v.string(),
+        name: v.string(),
+        category: v.string(),
+        quantity: v.string(),
+        price: v.number(),
+        owners: v.array(v.string()),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const existingList = await ctx.db
@@ -56,6 +67,7 @@ export const updateList = mutation({
       await ctx.db.patch(existingList._id, {
         itemsAmount: args.itemAmount,
         totalPrice: args.totalPrice,
+        items: args.items,
       });
     }
 

@@ -69,13 +69,6 @@ const categories = [
   "Other",
 ];
 
-const owners = [
-  { name: "All", avatar: "/placeholder.svg?height=32&width=32" },
-  { name: "Sarah", avatar: "/placeholder.svg?height=32&width=32" },
-  { name: "Michael", avatar: "/placeholder.svg?height=32&width=32" },
-  { name: "Emma", avatar: "/placeholder.svg?height=32&width=32" },
-];
-
 export default function GroceryListDetail({
   list,
   groceries,
@@ -108,7 +101,19 @@ export default function GroceryListDetail({
 
   useEffect(() => {
     setGroceryList(list);
-    setGroceryItems(groceries);
+    setGroceryItems(
+      groceries.map((item) => {
+        return {
+          groceryId: item.groceryId,
+          listId: item.listId,
+          name: item.name,
+          category: item.category,
+          quantity: item.quantity,
+          price: item.price,
+          owners: item.owners,
+        };
+      })
+    );
   }, [groceries, list]);
 
   // Filter and sort the grocery items
@@ -173,6 +178,7 @@ export default function GroceryListDetail({
         totalPrice:
           groceryItems.reduce((sum, item) => sum + item.price, 0) +
           newItem.price,
+        items: [...groceryItems, itemToAdd],
       });
 
       const updatedItems = [...groceryItems, itemToAdd];
@@ -234,6 +240,7 @@ export default function GroceryListDetail({
         listId: list.listId,
         itemAmount: updatedItems.length,
         totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+        items: updatedItems,
       });
 
       setGroceryItems(updatedItems);
@@ -277,6 +284,7 @@ export default function GroceryListDetail({
         listId: list.listId,
         itemAmount: updatedItems.length,
         totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+        items: updatedItems,
       });
 
       setGroceryList(updatedList);
@@ -312,6 +320,7 @@ export default function GroceryListDetail({
         listId: list.listId,
         itemAmount: updatedItems.length,
         totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+        items: updatedItems,
       });
 
       setGroceryList(updatedList);
@@ -587,9 +596,7 @@ export default function GroceryListDetail({
                           } else {
                             setNewItem({
                               ...newItem,
-                              owners: members.map(
-                                (member) => member.memberName
-                              ),
+                              owners: members.map((member) => member.memberId),
                             });
                           }
                         }}
@@ -605,7 +612,7 @@ export default function GroceryListDetail({
                           />
                           <AvatarFallback>A</AvatarFallback>
                         </Avatar>
-                        <span>All</span>
+                        <span>Everyone</span>
                       </Label>
                     </div>
                     {members.map((owner) => (
@@ -915,9 +922,9 @@ export default function GroceryListDetail({
                     >
                       <Checkbox
                         id={`edit-owner-${owner.memberName}`}
-                        checked={currentItem.owners.includes(owner.memberName)}
+                        checked={currentItem.owners.includes(owner.memberId)}
                         onCheckedChange={() =>
-                          handleToggleOwner(owner.memberName, false)
+                          handleToggleOwner(owner.memberId, false)
                         }
                       />
                       <Label

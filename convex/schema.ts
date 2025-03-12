@@ -29,7 +29,17 @@ export default defineSchema({
     note: v.optional(v.string()), // Additional notes related to the grocery list
     itemsAmount: v.number(), // Total number of items in the grocery list
     totalPrice: v.number(), // Total cost of all items in the grocery list
-    items: v.array(v.string()), // Array of references to the Groceries table (grocery item IDs)
+    items: v.array(
+      v.object({
+        listId: v.string(), // Reference to the grocery list this item belongs to
+        groceryId: v.string(), // Reference to the grocery item
+        name: v.string(), // Name of the grocery item
+        category: v.string(), // Category of the grocery item (e.g., Dairy, Fruits)
+        quantity: v.string(), // Quantity of the grocery item
+        price: v.number(), // Price of the grocery item
+        owners: v.array(v.string()), // Array of member IDs indicating ownership of the item
+      })
+    ), // Array of references to the Groceries table (grocery item IDs)
     createdAt: v.optional(v.number()), // Timestamp when the grocery list was created
     updatedAt: v.optional(v.number()), // Timestamp when the grocery list was last updated
   }).index("by_user_id", ["userId"]),
@@ -63,23 +73,23 @@ export default defineSchema({
   expenses: defineTable({
     listId: v.string(), // Reference to the grocery list this expense is associated with
     expenseId: v.string(), // Unique identifier for the expense (e.g., UUID)
-    date: v.number(), // Date of the expense
     totalAmount: v.number(), // Total amount of the expense (sum of item prices + tax)
     totalTax: v.number(), // Total tax amount applied to the expense
     items: v.array(
       // Array of items included in the expense
       v.object({
-        itemName: v.string(), // Name of the grocery item
+        name: v.string(), // Name of the grocery item
         category: v.string(), // Category of the grocery item (e.g., Dairy, Bakery)
         quantity: v.string(), // Quantity of the grocery item (e.g., "1 gallon")
         price: v.number(), // Price of the grocery item
         tax: v.number(), // Tax applied to the grocery item
         totalDue: v.number(), // Total due for this item (price + tax)
-        owners: v.object({
-          // Contributions from each member
-          // Each key is a memberId from the Members table
-          // The value is the amount contributed by that member
-        }),
+        owners: v.array(
+          v.object({
+            memberId: v.string(), // Reference to the member who contributed to this item
+            amount: v.number(), // Amount contributed by the member for this item
+          })
+        ),
       })
     ),
     createdAt: v.optional(v.number()), // Timestamp when the expense was created

@@ -3,6 +3,7 @@ import GroceryListDetail from "../_components/GroceryListDetailComponent";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import { redirect } from "next/navigation";
+import { GroceryList } from "@/app/types";
 
 async function GroceryListDetailPage({
   params,
@@ -12,9 +13,9 @@ async function GroceryListDetailPage({
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   const { id } = await params;
 
-  const convexGroceryList = await convex.query(api.groceryLists.getListById, {
+  const convexGroceryList = (await convex.query(api.groceryLists.getListById, {
     listId: id,
-  });
+  })) as unknown as GroceryList;
 
   if (!convexGroceryList) {
     redirect("/application/shopping-lists");
