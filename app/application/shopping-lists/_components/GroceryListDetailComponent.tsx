@@ -198,7 +198,7 @@ export default function GroceryListDetail({
         quantity: "",
         price: 0,
         owners: [],
-      });
+        });
       setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Error adding grocery item", error);
