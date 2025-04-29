@@ -12,7 +12,7 @@ export const addMember = mutation({
   handler: async (ctx, args) => {
     const existingMember = await ctx.db
       .query("members")
-      .filter((q) => q.eq(q.field("memberName"), args.memberName))
+      .filter((q) => q.eq(q.field("memberId"), args.memberId))
       .first();
 
     if (!existingMember) {
