@@ -38,11 +38,13 @@ export default defineSchema({
         quantity: v.string(), // Quantity of the grocery item
         price: v.number(), // Price of the grocery item
         owners: v.array(v.string()), // Array of member IDs indicating ownership of the item
-      })
+      }),
     ), // Array of references to the Groceries table (grocery item IDs)
     createdAt: v.optional(v.number()), // Timestamp when the grocery list was created
     updatedAt: v.optional(v.number()), // Timestamp when the grocery list was last updated
-  }).index("by_user_id", ["userId"]),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_user_date", ["userId", "date"]),
 
   groceries: defineTable({
     groceryId: v.string(), // Unique identifier for each grocery item (e.g., UUID)
@@ -68,7 +70,9 @@ export default defineSchema({
     totalPrice: v.number(), // Total cost of all items in the expense list
     createdAt: v.optional(v.number()), // Timestamp when the expense list was created
     updatedAt: v.optional(v.number()), // Timestamp when the expense list was last updated
-  }).index("by_user_id", ["userId"]),
+  })
+    .index("by_user_id", ["userId"])
+    .index("by_user_date", ["userId", "listDate"]),
 
   expenses: defineTable({
     listId: v.string(), // Reference to the grocery list this expense is associated with
@@ -88,9 +92,9 @@ export default defineSchema({
           v.object({
             memberId: v.string(), // Reference to the member who contributed to this item
             amount: v.number(), // Amount contributed by the member for this item
-          })
+          }),
         ),
-      })
+      }),
     ),
     createdAt: v.optional(v.number()), // Timestamp when the expense was created
     updatedAt: v.optional(v.number()), // Timestamp when the expense was last updated

@@ -1,7 +1,7 @@
 import React from "react";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { Dashboard } from "@/components/Dashboard";
+import DashboardWrapper from "@/components/dashboard/DashboardWrapper";
 
 async function MainPage() {
   const user = await currentUser();
@@ -12,7 +12,7 @@ async function MainPage() {
 
   return (
     <>
-      <Dashboard />
+      <DashboardWrapper />
     </>
   );
 }
