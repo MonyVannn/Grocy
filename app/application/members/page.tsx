@@ -13,7 +13,7 @@ async function MemberPage() {
   });
 
   const convexMembers = await convex.query(api.members.getMembersByUserId, {
-    userId: user?.id || "",
+    userId: convexUser?._id || "",
   });
 
   return (

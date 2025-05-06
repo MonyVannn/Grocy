@@ -3,30 +3,32 @@ import { mutation, query } from "./_generated/server";
 
 export const addMember = mutation({
   args: {
-    memberId: v.string(),
-    userId: v.string(),
+    userId: v.id("users"),
     memberName: v.string(),
     memberEmail: v.string(),
     role: v.string(),
   },
   handler: async (ctx, args) => {
-    const existingMember = await ctx.db
-      .query("members")
-      .filter((q) => q.eq(q.field("memberId"), args.memberId))
-      .first();
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_id", (q) => q.eq("_id", args.userId))
+      .unique();
 
-    if (!existingMember) {
-      await ctx.db.insert("members", {
-        memberId: args.memberId,
-        userId: args.userId,
-        memberName: args.memberName,
-        memberEmail: args.memberEmail,
-        role: args.role,
-        createdAt: Date.now(),
-      });
-    }
+    if (!user) return;
 
-    console.log("Member added successfully");
+    const newMemberId = await ctx.db.insert("members", {
+      userId: user._id,
+      memberName: args.memberName,
+      memberEmail: args.memberEmail,
+      role: args.role,
+      isActive: true,
+    });
+
+    const newMember = await ctx.db.get(newMemberId);
+
+    if (!newMember) throw new Error("Failed to retrieve newly created user!");
+
+    return newMember;
   },
 });
 
@@ -76,6 +78,7 @@ export const getMembersByUserId = query({
 
   handler: async (ctx, args) => {
     if (!args.userId) return null;
+    console.log("userId: ", args.userId);
 
     const members = await ctx.db
       .query("members")

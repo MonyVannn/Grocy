@@ -96,7 +96,7 @@ export default function MemberComponent({
   const totalMembers = members.length;
   const adminCount = members.filter((member) => member.role === "admin").length;
   const memberCount = members.filter(
-    (member) => member.role === "member"
+    (member) => member.role === "member",
   ).length;
 
   // Handle adding a new member
@@ -113,29 +113,19 @@ export default function MemberComponent({
       return;
     }
 
-    const memberId =
-      Date.now().toString(36) + Math.random().toString(36).substr(2);
-
-    const memberToAdd = {
-      memberId: memberId,
-      memberName: newMember.name.trim(),
-      memberEmail: newMember.email.trim(),
-      role: newMember.role,
-      userId: user.userId,
-    };
-
     try {
       // Call the addMember mutation
-      await convex.mutation(api.members.addMember, {
-        memberId: memberId, // Ensure this is a string
-        userId: user.userId, // Replace with the actual user ID
+      const newMemberFromDb = await convex.mutation(api.members.addMember, {
+        userId: user._id,
         memberName: newMember.name.trim(),
         memberEmail: newMember.email.trim(),
         role: newMember.role,
       });
 
+      if (!newMemberFromDb) return;
+
       // Update local state
-      setMembers([...members, memberToAdd]);
+      setMembers([...members, newMemberFromDb]);
       setNewMember({
         name: "",
         email: "",
@@ -145,7 +135,7 @@ export default function MemberComponent({
 
       toast({
         title: "Member Added",
-        description: `${memberToAdd.memberName} has been added successfully.`,
+        description: `${newMemberFromDb.memberName} has been added successfully.`,
       });
     } catch (error) {
       console.error("Error adding member:", error);
@@ -181,7 +171,7 @@ export default function MemberComponent({
             memberEmail: currentMember.memberEmail.trim(),
             role: currentMember.role,
           }
-        : member
+        : member,
     );
 
     try {
@@ -221,7 +211,7 @@ export default function MemberComponent({
       });
 
       const updatedMembers = members.filter(
-        (member) => member.memberId !== currentMember.memberId
+        (member) => member.memberId !== currentMember.memberId,
       );
       setMembers(updatedMembers);
       setIsDeleteDialogOpen(false);
@@ -450,7 +440,7 @@ export default function MemberComponent({
                   </TableRow>
                 ) : (
                   filteredMembers.map((member) => (
-                    <TableRow key={member.memberId}>
+                    <TableRow key={member._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
@@ -483,8 +473,10 @@ export default function MemberComponent({
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {member?.createdAt
-                          ? formatDate(new Date(member.createdAt).toISOString())
+                        {member?._createdAt
+                          ? formatDate(
+                              new Date(member._createdAt).toISOString(),
+                            )
                           : formatDate(new Date().toLocaleDateString())}
                       </TableCell>
                       <TableCell className="text-right">

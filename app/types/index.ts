@@ -1,19 +1,20 @@
+import { Id } from "@/convex/_generated/dataModel";
+
 export interface User {
-  userId: string;
+  _id: Id<"users">;
+  clerkUserId: string;
   email: string;
   name: string;
   role: string;
-  createdAt?: number;
-  updatedAt?: number;
 }
 
 export interface Member {
-  memberId: string;
-  userId: string;
+  _id: Id<"members">;
+  userId: Id<"users">;
   memberName: string;
   memberEmail: string;
   role: string;
-  createdAt?: number;
+  _creationTime: number;
 }
 
 export interface GroceryList {

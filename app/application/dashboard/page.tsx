@@ -12,7 +12,8 @@ async function MainPage() {
 
   return (
     <>
-      <DashboardWrapper />
+      {/* <DashboardWrapper /> */}
+      dashboard
     </>
   );
 }
