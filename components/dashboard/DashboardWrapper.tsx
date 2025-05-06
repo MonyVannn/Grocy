@@ -1,20 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Dashboard } from "./Dashboard";
 import MonthSelector from "./MonthSelector";
 import { Summary } from "@/types";
+import Dashboard from "./Dashboard";
 
 const DashboardWrapper = () => {
   const [summary, setSummary] = useState<Summary>();
-  const getSummaries = async (value: any) => {
+  const getSummaries = async (value: Summary) => {
     setSummary(value);
   };
 
   return (
     <>
       <MonthSelector passValue={getSummaries} />
-      {/* <Dashboard data={summary} /> */}
+      {summary && <Dashboard data={summary} />}
     </>
   );
 };

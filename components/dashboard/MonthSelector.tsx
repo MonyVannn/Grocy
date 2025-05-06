@@ -14,8 +14,22 @@ import { api } from "@/convex/_generated/api";
 
 const MonthSelector = ({ passValue }: any) => {
   const { user, isLoaded } = useUser();
-  const [month, setMonth] = useState(new Date().getMonth() + 1);
+  const [month, setMonth] = useState(new Date().getMonth());
   const currentYear = new Date().getFullYear();
+  const months = [
+    "January",
+    "Febuary",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
 
   useEffect(() => {
     if (!user) return;
@@ -26,6 +40,14 @@ const MonthSelector = ({ passValue }: any) => {
       const startOfMonth = new Date(currentYear, month, 1);
       const startOfMonthTimestamp = startOfMonth.getTime();
 
+      const startOfMonthDate = new Date(startOfMonthTimestamp);
+      const previousMonthDate = new Date(
+        startOfMonthDate.getFullYear(),
+        startOfMonthDate.getMonth() - 1, // Subtract 1 month
+        1, // Day is always 1
+      );
+      const startOfPreviousMonthTimestamp = previousMonthDate.getTime();
+
       const startOfNextMonth = new Date(currentYear, month + 1, 1);
       const endOfMonthTimestamp = startOfNextMonth.getTime(); // Exclusive end
 
@@ -35,6 +57,7 @@ const MonthSelector = ({ passValue }: any) => {
           userId: user?.id,
           startOfMonthTimestamp,
           endOfMonthTimestamp,
+          startOfPreviousMonthTimestamp,
         },
       );
 
@@ -54,10 +77,9 @@ const MonthSelector = ({ passValue }: any) => {
     <div className="mb-8">
       <div className="flex items-center justify-between mt-4">
         <div>
-          <h2 className="text-xl font-bold">Grocery Expenses</h2>
-          <div className="flex items-center text-sm text-gray-500 mt-1">
-            vs prev: 1.67% Jun 1 - Aug 31, 2023
-            <ChevronDown className="h-4 w-4 ml-1" />
+          <h2 className="text-2xl font-bold">Grocery Expenses</h2>
+          <div className="flex items-center text-gray-500 mt-1">
+            An overview of your grocery journey.
           </div>
         </div>
 
@@ -72,18 +94,11 @@ const MonthSelector = ({ passValue }: any) => {
               />
             </SelectTrigger>
             <SelectContent className="h-54">
-              <SelectItem value="0">January, {currentYear}</SelectItem>
-              <SelectItem value="1">Febuary, {currentYear}</SelectItem>
-              <SelectItem value="2">March, {currentYear}</SelectItem>
-              <SelectItem value="3">April, {currentYear}</SelectItem>
-              <SelectItem value="4">May, {currentYear}</SelectItem>
-              <SelectItem value="5">June, {currentYear}</SelectItem>
-              <SelectItem value="6">July, {currentYear}</SelectItem>
-              <SelectItem value="7">August, {currentYear}</SelectItem>
-              <SelectItem value="8">September, {currentYear}</SelectItem>
-              <SelectItem value="9">October, {currentYear}</SelectItem>
-              <SelectItem value="10">November, {currentYear}</SelectItem>
-              <SelectItem value="11">December, {currentYear}</SelectItem>
+              {months.map((val, index) => (
+                <SelectItem key={index} value={String(index)}>
+                  {val}, {currentYear}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>

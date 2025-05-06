@@ -9,4 +9,7 @@ export type Summary = {
   averageSpending: number;
   topSpender: MemberSpending;
   totalOverallSpending: number;
+  totalOverallSpendingPreviousMonth: number;
+  totalOverallSpendingDifference: number;
+  percentageDifference: number;
 };
