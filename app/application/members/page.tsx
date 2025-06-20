@@ -1,8 +1,8 @@
 import React from "react";
 import MemberComponent from "./_components/memberComponent";
 import { currentUser } from "@clerk/nextjs/server";
-import { api } from "@/convex/_generated/api";
 import { ConvexHttpClient } from "convex/browser";
+import { api } from "@/convex/_generated/api";
 
 async function MemberPage() {
   const user = await currentUser();
@@ -12,14 +12,17 @@ async function MemberPage() {
     userId: user?.id || "",
   });
 
-  const convexMembers = await convex.query(api.members.getMembersByUserId, {
+  const convexMember = await convex.query(api.members.getMembersByUserId, {
     userId: convexUser?._id || "",
   });
 
+  console.log("convexUser: ", convexUser);
+  console.log("convexMembers: ", convexMember);
+
   return (
     <>
-      {convexUser && convexMembers && (
-        <MemberComponent user={convexUser} convexMembers={convexMembers} />
+      {convexUser && convexMember && (
+        <MemberComponent user={convexUser} convexMembers={convexMember} />
       )}
     </>
   );

@@ -1,7 +1,5 @@
 "use client";
 
-import { Member } from "@/app/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -42,9 +40,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { User } from "@clerk/nextjs/server";
+import { User, Member } from "@/app/types";
 import { Edit, MoreHorizontal, Search, Trash2, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 
 export default function MemberComponent({
   user,
@@ -57,7 +56,9 @@ export default function MemberComponent({
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "invalid date.";
+    if (isNaN(date.getTime())) {
+      return "Invalid date";
+    }
 
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
@@ -215,7 +216,9 @@ export default function MemberComponent({
                 ) : (
                   members.map((member) => (
                     <TableRow key={member._id}>
-                      <TableCell> {member.memberName || "-"}</TableCell>
+                      <TableCell className="font-medium">
+                        {member.memberName || "-"}
+                      </TableCell>
                       <TableCell>{member.memberEmail || "-"}</TableCell>
                       <TableCell>
                         <Badge
