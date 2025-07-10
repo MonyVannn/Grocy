@@ -156,3 +156,44 @@ export const getExpensDetail = query({
     return groupedByItem;
   },
 });
+
+export const updateExpense = mutation({
+  args: {
+    splitId: v.string(),
+    itemId: v.id("items"),
+    memberId: v.id("members"),
+    shareAmount: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const existingSplit = await ctx.db
+      .query("itemSplits")
+      .filter((q) => q.eq(q.field("_id"), args.splitId))
+      .first();
+
+    if (existingSplit) {
+      await ctx.db.patch(existingSplit._id, {
+        itemId: args.itemId,
+        memberId: args.memberId,
+        shareAmount: args.shareAmount,
+      });
+    }
+  },
+});
+
+export const deleteExpensesByItemId = mutation({
+  args: {
+    itemId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const splits = await ctx.db
+      .query("itemSplits")
+      .filter((q) => q.eq(q.field("itemId"), args.itemId))
+      .collect();
+
+    if (splits) {
+      for (const split of splits) {
+        await ctx.db.delete(split._id);
+      }
+    }
+  },
+});

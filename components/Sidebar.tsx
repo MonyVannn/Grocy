@@ -2,14 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  CreditCard,
-  Home,
-  Receipt,
-  Settings,
-  ShoppingCart,
-  Users,
-} from "lucide-react";
+import { CreditCard, Home, Settings, ShoppingCart, Users } from "lucide-react";
 
 import {
   Sidebar,
@@ -42,11 +35,6 @@ export function AppSidebar({ name, email }: { name?: string; email?: string }) {
           title: "Grocery Trips",
           href: "/application/shopping-lists",
           icon: ShoppingCart,
-        },
-        {
-          title: "Expenses",
-          href: "/application/expenses",
-          icon: Receipt,
         },
       ],
     },

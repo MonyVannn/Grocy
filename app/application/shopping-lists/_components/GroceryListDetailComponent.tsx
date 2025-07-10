@@ -101,6 +101,7 @@ export default function GroceryListDetail({
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isPaidDialogOpen, setIsPaidDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [currentItem, setCurrentItem] = useState<Grocery>();
   const [newItem, setNewItem] = useState({
@@ -176,6 +177,17 @@ export default function GroceryListDetail({
       owners: owners.map((owner) => owner.value),
     };
 
+    const expenseToAdd = {
+      _id: new Date().getTime().toString() as Id<"itemSplits">,
+      itemName: newItem.name,
+      splits: owners.map((owner) => ({
+        memberName: owner.label,
+        shareAmount: newItem.price / owners.length,
+        isPaid: false,
+        note: "",
+      })),
+    };
+
     // call the addGrocery mutation
     try {
       const item = await convex.mutation(api.groceries.addGrocery, {
@@ -221,8 +233,12 @@ export default function GroceryListDetail({
           0
         ),
       };
-      setGroceryList(updatedList);
 
+      // Update the expense list
+      const updatedExpense = [...expenses, expenseToAdd];
+
+      setGroceryList(updatedList);
+      setExpenses(updatedExpense);
       setNewItem({
         name: "",
         category: "Dairy",
@@ -240,7 +256,7 @@ export default function GroceryListDetail({
 
   // Handle editing an item
   const handleEditItem = async () => {
-    if (!currentItem?.owners.length) {
+    if (!currentItem?.owners.length || !currentItem.itemName) {
       return; // prevent saving an item with no owners
     }
 
@@ -255,6 +271,25 @@ export default function GroceryListDetail({
             owners: currentItem.owners,
           }
         : item
+    );
+
+    const updatedExpense = expenses.map((expense) =>
+      expense._id === currentItem._id
+        ? {
+            ...expense,
+            itemName: currentItem.itemName,
+            splits: currentItem.owners.map((owner) => {
+              const member = members.find((m) => m._id === owner);
+              return {
+                memberName: member?.memberName || "",
+                shareAmount:
+                  currentItem.totalItemPrice / currentItem.owners.length,
+                isPaid: false,
+                note: "",
+              };
+            }),
+          }
+        : expense
     );
 
     try {
@@ -277,7 +312,21 @@ export default function GroceryListDetail({
         ),
       });
 
-      setGroceryItems(updatedItems);
+      await convex.mutation(api.expenses.deleteExpensesByItemId, {
+        itemId: currentItem._id as Id<"items">,
+      });
+
+      await Promise.all(
+        currentItem.owners.map(async (owner) => {
+          await convex.mutation(api.expenses.addExpense, {
+            listId: list._id as Id<"lists">,
+            userId: list.userId as Id<"users">,
+            memberId: owner as Id<"members">,
+            itemId: currentItem._id as Id<"items">,
+            shareAmount: currentItem.totalItemPrice / currentItem.owners.length,
+          });
+        })
+      );
 
       // Update the grocery list with new totals
       const updatedList: GroceryList = {
@@ -289,7 +338,8 @@ export default function GroceryListDetail({
       };
 
       setGroceryList(updatedList);
-
+      setGroceryItems(updatedItems);
+      setExpenses(updatedExpense);
       setIsEditDialogOpen(false);
     } catch (error) {
       console.error("Error updating grocery item", error);
@@ -329,8 +379,16 @@ export default function GroceryListDetail({
         ),
       });
 
-      setGroceryList(updatedList);
+      await convex.mutation(api.expenses.deleteExpensesByItemId, {
+        itemId: currentItem!._id as Id<"items">,
+      });
 
+      const updatedExpenses = expenses.filter(
+        (expense) => expense._id !== currentItem?._id
+      );
+
+      setExpenses(updatedExpenses);
+      setGroceryList(updatedList);
       setIsDeleteDialogOpen(false);
     } catch (error) {
       console.error("Error deleting grocery item", error);
@@ -370,14 +428,27 @@ export default function GroceryListDetail({
         ),
       });
 
-      setGroceryList(updatedList);
+      selectedItems.map(async (itemId) => {
+        await convex.mutation(api.expenses.deleteExpensesByItemId, {
+          itemId: itemId as Id<"items">,
+        });
+      });
 
+      const updatedExpenses = expenses.filter(
+        (expense) => !selectedItems.includes(expense._id!)
+      );
+
+      setExpenses(updatedExpenses);
+      setGroceryList(updatedList);
       setSelectedItems([]);
     } catch (error) {
       console.error("Error deleting grocery items", error);
       return;
     }
   };
+
+  // Handle payment
+  const handlePayment = async () => {};
 
   // Handle sort change
   const handleSortChange = (field: string) => {
@@ -839,10 +910,15 @@ export default function GroceryListDetail({
       {/* Expenses Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Expenses</CardTitle>
-          <CardDescription>
-            View the details for the expenses of the whole trip.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Expenses</CardTitle>
+              <CardDescription>
+                View the details for the expenses of the whole trip.
+              </CardDescription>
+            </div>
+            <Button onClick={() => setIsPaidDialogOpen(true)}>Mark Paid</Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -854,90 +930,77 @@ export default function GroceryListDetail({
                   <TableHead>Share Amount</TableHead>
                   <TableHead>Is Paid</TableHead>
                   <TableHead>Note</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {expenses.map(({ _id, itemName, splits }) => (
-                  <React.Fragment key={_id}>
-                    <TableRow
-                      className="bg-muted font-semibold"
-                      key={`group-${itemName}`}
-                    >
-                      <TableCell>{itemName}</TableCell>
-                      <TableCell colSpan={5}></TableCell>
-                    </TableRow>
-                    {splits.map((split, index) => (
+                {expenses.length !== 0 ? (
+                  expenses.map(({ _id, itemName, splits }) => (
+                    <React.Fragment key={_id}>
                       <TableRow
-                        key={`${itemName}-${split.memberName}-${index}`}
+                        className="bg-muted font-semibold"
+                        key={`group-${itemName}`}
                       >
-                        <TableCell></TableCell>
-                        <TableCell>{split.memberName}</TableCell>
-                        <TableCell>${split.shareAmount.toFixed(2)}</TableCell>
-                        <TableCell>{split.isPaid ? "Yes" : "No"}</TableCell>
-                        <TableCell>{split.note || ""}</TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {}}>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => {}}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                        <TableCell>
+                          {itemName} ($
+                          {splits.reduce(
+                            (sum, split) => sum + split.shareAmount,
+                            0
+                          )}
+                          )
                         </TableCell>
+                        <TableCell colSpan={5}></TableCell>
                       </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          <div className="rounded-md border mt-10">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead></TableHead>
-                  {memberNames.map((name) => (
-                    <TableHead key={name}>{name}</TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-semibold">Total Owed</TableCell>
-                  {memberNames.map((name) => (
-                    <TableCell key={name}>
-                      ${memberTotals[name].toFixed(2)}
+                      {splits.map((split, index) => (
+                        <TableRow
+                          key={`${itemName}-${split.memberName}-${index}`}
+                        >
+                          <TableCell></TableCell>
+                          <TableCell>{split.memberName}</TableCell>
+                          <TableCell>${split.shareAmount.toFixed(2)}</TableCell>
+                          <TableCell>{split.isPaid ? "Yes" : "No"}</TableCell>
+                          <TableCell>{split.note || ""}</TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <TableRow className="text-center">
+                    <TableCell colSpan={5} className="text-muted-foreground">
+                      No Items yet
                     </TableCell>
-                  ))}
-                </TableRow>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
+          {expenses.length !== 0 && (
+            <div className="rounded-md border mt-10">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead></TableHead>
+                    {memberNames.map((name) => (
+                      <TableHead key={name}>{name}</TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-semibold">Total Owed</TableCell>
+                    {memberNames.map((name) => (
+                      <TableCell key={name}>
+                        ${memberTotals[name].toFixed(2)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          )}
         </CardContent>
-        <CardFooter className="flex justify-between">
-          <div className="text-sm text-muted-foreground">
-            Showing {sortedItems.length} of {groceryItems.length} items
-          </div>
-        </CardFooter>
       </Card>
 
-      {/* Edit Dialog */}
+      {/* Edit item dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -1042,40 +1105,6 @@ export default function GroceryListDetail({
                     }
                   />
                 </div>
-                {/* <div className="col-span-3 space-y-2">
-                  {members.map((owner) => (
-                    <div
-                      key={owner.memberName}
-                      className="flex items-center space-x-2"
-                    >
-                      <Checkbox
-                        id={`edit-owner-${owner.memberName}`}
-                        checked={currentItem.owners.includes(owner._id)}
-                        onCheckedChange={() =>
-                          handleToggleOwner(owner._id, false)
-                        }
-                      />
-                      <Label
-                        htmlFor={`edit-owner-${owner.memberName}`}
-                        className="flex items-center space-x-2 cursor-pointer"
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage
-                            src={owner.memberName}
-                            alt={owner.memberName}
-                          />
-                          <AvatarFallback>{owner.memberName[0]}</AvatarFallback>
-                        </Avatar>
-                        <span>{owner.memberName}</span>
-                      </Label>
-                    </div>
-                  ))}
-                  {currentItem.owners.length === 0 && (
-                    <p className="text-sm text-destructive">
-                      Please select at least one owner
-                    </p>
-                  )}
-                </div> */}
               </div>
             </div>
           )}
@@ -1088,6 +1117,75 @@ export default function GroceryListDetail({
             </Button>
             <Button
               onClick={handleEditItem}
+              disabled={
+                currentItem &&
+                (!currentItem.itemName ||
+                  !currentItem.quantity ||
+                  !currentItem.totalItemPrice ||
+                  currentItem.owners.length === 0)
+              }
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit expense dialog */}
+      <Dialog open={isPaidDialogOpen} onOpenChange={setIsPaidDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit member details</DialogTitle>
+            <DialogDescription>
+              Make changes to the member regarding their payments
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="grid grid-cols-4 gap-2">
+              <Label className="pt-2">Owners</Label>
+              <Select>
+                <SelectTrigger className="col-span-3 w-full">
+                  <SelectValue placeholder="Member" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map((member) => (
+                    <SelectItem value={member._id} key={member._id}>
+                      {member.memberName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              <Label>Is Paid</Label>
+              <Select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Yes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">Yes</SelectItem>
+                  <SelectItem value="2">No</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              <Label>Note</Label>
+              <Input
+                type="text"
+                placeholder="Note..."
+                className="col-span-3"
+              ></Input>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsPaidDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handlePayment}
               disabled={
                 currentItem &&
                 (!currentItem.itemName ||
