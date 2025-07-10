@@ -29,15 +29,25 @@ async function GroceryListDetailPage({
     listId: id,
   });
 
+  const convexSplits = await convex.query(api.expenses.getExpensDetail, {
+    listId: id,
+  });
+
+  console.log(convexSplits);
+
   return (
     <>
-      {convexGroceries && convexGroceryList && convexMembers && (
-        <GroceryListDetail
-          groceries={convexGroceries}
-          list={convexGroceryList}
-          members={convexMembers}
-        />
-      )}
+      {convexGroceries &&
+        convexGroceryList &&
+        convexMembers &&
+        convexSplits && (
+          <GroceryListDetail
+            groceries={convexGroceries}
+            list={convexGroceryList}
+            members={convexMembers}
+            splits={convexSplits}
+          />
+        )}
     </>
   );
 }

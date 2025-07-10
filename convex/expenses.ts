@@ -1,59 +1,158 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Doc } from "./_generated/dataModel";
 
-export const getExpenses = query({
-  args: { expenseId: v.string() },
-  handler: async (ctx, args) => {
-    const expenses = await ctx.db
-      .query("expenses")
-      .filter((q) => q.eq(q.field("expenseId"), args.expenseId))
-      .first();
+// export const getExpenses = query({
+//   args: { expenseId: v.string() },
+//   handler: async (ctx, args) => {
+//     const expenses = await ctx.db
+//       .query("expenses")
+//       .filter((q) => q.eq(q.field("expenseId"), args.expenseId))
+//       .first();
 
-    return expenses;
-  },
-});
+//     return expenses;
+//   },
+// });
 
-export const addExpenses = mutation({
+// export const addExpenses = mutation({
+//   args: {
+//     expenseId: v.string(),
+//     listId: v.string(),
+//     totalAmount: v.number(),
+//     totalTax: v.number(),
+//     items: v.array(
+//       v.object({
+//         name: v.string(),
+//         category: v.string(),
+//         quantity: v.string(),
+//         price: v.number(),
+//         tax: v.number(),
+//         totalDue: v.number(),
+//         owners: v.array(
+//           v.object({
+//             memberId: v.string(),
+//             amount: v.number(),
+//           })
+//         ),
+//       })
+//     ),
+//   },
+//   handler: async (ctx, args) => {
+//     const expense = await ctx.db.insert("expenses", {
+//       expenseId: args.expenseId,
+//       listId: args.listId,
+//       totalAmount: args.totalAmount,
+//       totalTax: args.totalTax,
+//       items: args.items.map((item) => ({
+//         name: item.name,
+//         category: item.category,
+//         quantity: item.quantity,
+//         price: item.price,
+//         tax: item.tax,
+//         totalDue: item.totalDue,
+//         owners: item.owners,
+//       })),
+//       createdAt: Date.now(),
+//     });
+
+//     return expense;
+//   },
+// });
+
+export const addExpense = mutation({
   args: {
-    expenseId: v.string(),
-    listId: v.string(),
-    totalAmount: v.number(),
-    totalTax: v.number(),
-    items: v.array(
-      v.object({
-        name: v.string(),
-        category: v.string(),
-        quantity: v.string(),
-        price: v.number(),
-        tax: v.number(),
-        totalDue: v.number(),
-        owners: v.array(
-          v.object({
-            memberId: v.string(),
-            amount: v.number(),
-          })
-        ),
-      })
-    ),
+    listId: v.id("lists"),
+    userId: v.id("users"),
+    memberId: v.id("members"),
+    itemId: v.id("items"),
+    shareAmount: v.number(),
   },
   handler: async (ctx, args) => {
-    const expense = await ctx.db.insert("expenses", {
-      expenseId: args.expenseId,
+    const expense = await ctx.db.insert("itemSplits", {
       listId: args.listId,
-      totalAmount: args.totalAmount,
-      totalTax: args.totalTax,
-      items: args.items.map((item) => ({
-        name: item.name,
-        category: item.category,
-        quantity: item.quantity,
-        price: item.price,
-        tax: item.tax,
-        totalDue: item.totalDue,
-        owners: item.owners,
-      })),
-      createdAt: Date.now(),
+      userId: args.userId,
+      memberId: args.memberId,
+      itemId: args.itemId,
+      shareAmount: args.shareAmount,
+      isPaid: false,
     });
 
     return expense;
+  },
+});
+
+export const getExpenseByListId = query({
+  args: {
+    listId: v.id("lists"),
+  },
+  handler: async (ctx, args) => {
+    const expense = await ctx.db
+      .query("itemSplits")
+      .withIndex("by_list_id")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .collect();
+
+    return expense;
+  },
+});
+
+export const getExpensDetail = query({
+  args: {
+    listId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const items = await ctx.db
+      .query("items")
+      .withIndex("by_list_id")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .collect();
+
+    const splits = await ctx.db
+      .query("itemSplits")
+      .withIndex("by_list_id")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .collect();
+
+    // 1. Get unique member IDs from splits
+    const memberIds = [...new Set(splits.map((s) => s.memberId))];
+
+    // 2. Fetch all related members in a single query
+    const members = await Promise.all(memberIds.map((id) => ctx.db.get(id)));
+
+    const memberMap = new Map(
+      members
+        .filter((m): m is Doc<"members"> => m !== null)
+        .map((m) => [m._id, m.memberName])
+    );
+
+    // 3. Group splits by itemId
+    const splitsByItemId = new Map<string, typeof splits>();
+
+    for (const split of splits) {
+      if (!splitsByItemId.has(split.itemId)) {
+        splitsByItemId.set(split.itemId, []);
+      }
+      splitsByItemId.get(split.itemId)!.push(split);
+    }
+
+    // 4. Construct the grouped structure
+    const groupedByItem = items.map((item) => {
+      const splitsForItem = splitsByItemId.get(item._id) || [];
+
+      const formattedSplits = splitsForItem.map((split) => ({
+        memberName: memberMap.get(split.memberId) || "Unknown",
+        shareAmount: split.shareAmount,
+        isPaid: split.isPaid ?? false,
+        note: split.note ?? "",
+      }));
+
+      return {
+        _id: item._id,
+        itemName: item.itemName,
+        splits: formattedSplits,
+      };
+    });
+
+    return groupedByItem;
   },
 });

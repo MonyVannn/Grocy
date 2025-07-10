@@ -25,6 +25,7 @@ export default defineSchema({
     listDate: v.number(),
     payerMemberId: v.id("members"),
     totalAmount: v.number(),
+    totalItems: v.number(),
     isSettled: v.boolean(),
     notes: v.string(),
   })
@@ -38,8 +39,8 @@ export default defineSchema({
     itemName: v.string(),
     category: v.optional(v.string()),
     quantity: v.optional(v.number()),
-    unitPrice: v.float64(),
     totalItemPrice: v.float64(),
+    owners: v.array(v.string()),
   })
     .index("by_list_id", ["listId"])
     .index("by_user_id", ["userId"])
@@ -47,11 +48,12 @@ export default defineSchema({
 
   itemSplits: defineTable({
     itemId: v.id("items"),
-    listId: v.id("listId"),
+    listId: v.id("lists"),
     userId: v.id("users"),
     memberId: v.id("members"),
     shareAmount: v.float64(),
     isPaid: v.optional(v.boolean()),
+    note: v.optional(v.string()),
   })
     .index("by_item_id", ["itemId"])
     .index("by_list_id", ["listId"])

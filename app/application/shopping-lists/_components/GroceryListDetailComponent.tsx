@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -54,7 +54,16 @@ import {
 } from "@/components/ui/table";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { Grocery, GroceryList, Member } from "@/app/types";
+import { Grocery, GroceryList, Member, Splits } from "@/app/types";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import MultipleSelector, { Option } from "@/components/ui/multi-select";
+import { Id } from "@/convex/_generated/dataModel";
 
 const categories = [
   "All Categories",
@@ -73,15 +82,18 @@ export default function GroceryListDetail({
   list,
   groceries,
   members,
+  splits,
 }: {
   list: GroceryList;
   groceries: Grocery[];
   members: Member[];
+  splits: Splits[];
 }) {
   const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
   const router = useRouter();
   const [groceryList, setGroceryList] = useState<GroceryList>();
   const [groceryItems, setGroceryItems] = useState<Grocery[]>([]);
+  const [expenses, setExpenses] = useState<Splits[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [sortField, setSortField] = useState("name");
@@ -96,29 +108,32 @@ export default function GroceryListDetail({
     category: "Dairy",
     quantity: "",
     price: 0,
-    owners: [] as string[],
+    owners: [] as Option[],
   });
+  const [owners, setOwners] = useState<Option[]>([]);
 
   useEffect(() => {
     setGroceryList(list);
     setGroceryItems(
       groceries.map((item) => {
         return {
-          groceryId: item.groceryId,
+          _id: item._id,
+          userId: item.userId,
           listId: item.listId,
-          name: item.name,
+          itemName: item.itemName,
           category: item.category,
           quantity: item.quantity,
-          price: item.price,
+          totalItemPrice: item.totalItemPrice,
           owners: item.owners,
         };
       })
     );
-  }, [groceries, list]);
+    setExpenses(splits);
+  }, [groceries, list, splits]);
 
   // Filter and sort the grocery items
   const filteredItems = groceryItems.filter((item) => {
-    const matchesSearch = item.name
+    const matchesSearch = item.itemName
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesCategory =
@@ -130,65 +145,81 @@ export default function GroceryListDetail({
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (sortField === "name") {
       return sortDirection === "asc"
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name);
+        ? a.itemName.localeCompare(b.itemName)
+        : b.itemName.localeCompare(a.itemName);
     } else if (sortField === "price") {
-      return sortDirection === "asc" ? a.price - b.price : b.price - a.price;
+      return sortDirection === "asc"
+        ? a.totalItemPrice - b.totalItemPrice
+        : b.totalItemPrice - a.totalItemPrice;
     } else if (sortField === "category") {
       return sortDirection === "asc"
-        ? a.category.localeCompare(b.category)
-        : b.category.localeCompare(a.category);
+        ? (a.category ?? "").localeCompare(b.category ?? "")
+        : (b.category ?? "").localeCompare(a.category ?? "");
     }
     return 0;
   });
 
   // Handle adding a new item
   const handleAddItem = async () => {
-    if (!newItem.owners.length) {
+    if (!owners.length) {
       return; // prevent adding an item with no owners
     }
 
-    const groceryId =
-      Date.now().toString(36) + Math.random().toString(36).substr(2);
     const itemToAdd = {
-      groceryId: groceryId,
+      _id: new Date().getTime().toString() as Id<"items">,
+      userId: list.userId,
       listId: list.listId,
-      name: newItem.name,
+      itemName: newItem.name,
       category: newItem.category,
-      quantity: newItem.quantity,
-      price: newItem.price,
-      owners: newItem.owners,
+      quantity: Number(newItem.quantity),
+      totalItemPrice: newItem.price,
+      owners: owners.map((owner) => owner.value),
     };
 
     // call the addGrocery mutation
     try {
-      await convex.mutation(api.groceries.addGrocery, {
-        groceryId: groceryId,
-        listId: list.listId,
+      const item = await convex.mutation(api.groceries.addGrocery, {
+        listId: list._id as Id<"lists">,
+        userId: list.userId as Id<"users">,
         name: newItem.name,
         category: newItem.category,
         quantity: newItem.quantity,
         price: newItem.price,
-        owners: newItem.owners,
-      });
-
-      await convex.mutation(api.groceryLists.updateList, {
-        listId: list.listId,
-        itemAmount: groceryItems.length + 1,
-        totalPrice:
-          groceryItems.reduce((sum, item) => sum + item.price, 0) +
-          newItem.price,
-        items: [...groceryItems, itemToAdd],
+        owners: owners.map((owner) => owner.value),
       });
 
       const updatedItems = [...groceryItems, itemToAdd];
       setGroceryItems(updatedItems);
 
+      await convex.mutation(api.groceryLists.updateListAmount, {
+        listId: list._id as Id<"lists">,
+        totalPrice: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
+        itemAmount: updatedItems.length,
+      });
+
+      await Promise.all(
+        owners.map(async (owner) => {
+          await convex.mutation(api.expenses.addExpense, {
+            listId: list._id as Id<"lists">,
+            userId: list.userId as Id<"users">,
+            memberId: owner.value as Id<"members">,
+            itemId: item as Id<"items">,
+            shareAmount: newItem.price / owners.length,
+          });
+        })
+      );
+
       // Update the grocery list with new totals
       const updatedList: GroceryList = {
         ...groceryList!,
-        itemsAmount: updatedItems.length,
-        totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+        totalItems: updatedItems.length,
+        totalAmount: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
       };
       setGroceryList(updatedList);
 
@@ -198,7 +229,8 @@ export default function GroceryListDetail({
         quantity: "",
         price: 0,
         owners: [],
-        });
+      });
+      setOwners([]);
       setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Error adding grocery item", error);
@@ -213,13 +245,13 @@ export default function GroceryListDetail({
     }
 
     const updatedItems: Grocery[] = groceryItems.map((item) =>
-      item.groceryId === currentItem.groceryId
+      item._id === currentItem._id
         ? {
             ...item,
-            name: currentItem.name,
+            name: currentItem.itemName,
             category: currentItem.category,
             quantity: currentItem.quantity,
-            price: Number.parseFloat(currentItem.price.toString()),
+            price: Number.parseFloat(currentItem.totalItemPrice.toString()),
             owners: currentItem.owners,
           }
         : item
@@ -228,19 +260,21 @@ export default function GroceryListDetail({
     try {
       // call the updateGrocery mutation
       await convex.mutation(api.groceries.updateGrocery, {
-        groceryId: currentItem.groceryId,
-        name: currentItem.name,
-        category: currentItem.category,
-        quantity: currentItem.quantity,
-        price: currentItem.price,
+        groceryId: currentItem._id as Id<"items">,
+        name: currentItem.itemName,
+        category: currentItem.category || "",
+        quantity: String(currentItem.quantity || 0),
+        price: currentItem.totalItemPrice,
         owners: currentItem.owners,
       });
 
-      await convex.mutation(api.groceryLists.updateList, {
-        listId: list.listId,
+      await convex.mutation(api.groceryLists.updateListAmount, {
+        listId: list._id as Id<"lists">,
         itemAmount: updatedItems.length,
-        totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
-        items: updatedItems,
+        totalPrice: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
       });
 
       setGroceryItems(updatedItems);
@@ -248,7 +282,10 @@ export default function GroceryListDetail({
       // Update the grocery list with new totals
       const updatedList: GroceryList = {
         ...groceryList!,
-        totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+        totalAmount: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
       };
 
       setGroceryList(updatedList);
@@ -263,28 +300,33 @@ export default function GroceryListDetail({
   // Handle deleting an item
   const handleDeleteItem = async () => {
     const updatedItems: Grocery[] = groceryItems.filter(
-      (item) => item.groceryId !== currentItem?.groceryId
+      (item) => item._id !== currentItem?._id
     );
     setGroceryItems(updatedItems);
 
     // Update the grocery list with new totals
     const updatedList: GroceryList = {
       ...groceryList!,
-      itemsAmount: updatedItems.length,
-      totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+      totalItems: updatedItems.length,
+      totalAmount: updatedItems.reduce(
+        (sum, item) => sum + item.totalItemPrice,
+        0
+      ),
     };
 
     try {
       // call the deleteGrocery mutation
       await convex.mutation(api.groceries.deleteGrocery, {
-        groceryId: currentItem!.groceryId,
+        groceryId: currentItem!._id || "",
       });
 
-      await convex.mutation(api.groceryLists.updateList, {
-        listId: list.listId,
+      await convex.mutation(api.groceryLists.updateListAmount, {
+        listId: list._id as Id<"lists">,
         itemAmount: updatedItems.length,
-        totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
-        items: updatedItems,
+        totalPrice: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
       });
 
       setGroceryList(updatedList);
@@ -299,15 +341,18 @@ export default function GroceryListDetail({
   // Handle bulk delete
   const handleBulkDelete = async () => {
     const updatedItems: Grocery[] = groceryItems.filter(
-      (item) => !selectedItems.includes(item.groceryId)
+      (item) => !selectedItems.includes(item._id!)
     );
     setGroceryItems(updatedItems);
 
     // Update the grocery list with new totals
     const updatedList: GroceryList = {
       ...groceryList!,
-      itemsAmount: updatedItems.length,
-      totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
+      totalItems: updatedItems.length,
+      totalAmount: updatedItems.reduce(
+        (sum, item) => sum + item.totalItemPrice,
+        0
+      ),
     };
 
     try {
@@ -316,11 +361,13 @@ export default function GroceryListDetail({
         groceryIds: selectedItems,
       });
 
-      await convex.mutation(api.groceryLists.updateList, {
-        listId: list.listId,
+      await convex.mutation(api.groceryLists.updateListAmount, {
+        listId: list._id as Id<"lists">,
         itemAmount: updatedItems.length,
-        totalPrice: updatedItems.reduce((sum, item) => sum + item.price, 0),
-        items: updatedItems,
+        totalPrice: updatedItems.reduce(
+          (sum, item) => sum + item.totalItemPrice,
+          0
+        ),
       });
 
       setGroceryList(updatedList);
@@ -356,28 +403,22 @@ export default function GroceryListDetail({
     if (selectedItems.length === filteredItems.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredItems.map((item) => item.groceryId));
+      setSelectedItems(filteredItems.map((item) => item._id || ""));
     }
   };
 
-  // Handle toggle owner selection for new or edited item
-  const handleToggleOwner = (ownerName: string, isNewItem = true) => {
-    if (isNewItem) {
-      setNewItem({
-        ...newItem,
-        owners: newItem.owners.includes(ownerName)
-          ? newItem.owners.filter((name) => name !== ownerName)
-          : [...newItem.owners, ownerName],
-      });
-    } else {
-      setCurrentItem({
-        ...currentItem!,
-        owners: currentItem?.owners.includes(ownerName)
-          ? currentItem.owners.filter((name: any) => name !== ownerName)
-          : [...currentItem!.owners, ownerName],
-      });
-    }
-  };
+  const memberTotals: Record<string, number> = {};
+
+  expenses.forEach(({ splits }) => {
+    splits.forEach(({ memberName, shareAmount }) => {
+      if (!memberTotals[memberName]) {
+        memberTotals[memberName] = 0;
+      }
+      memberTotals[memberName] += shareAmount;
+    });
+  });
+
+  const memberNames = Object.keys(memberTotals);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -415,20 +456,25 @@ export default function GroceryListDetail({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Groceries</h1>
           <p className="text-muted-foreground">
-            {formatDate(new Date(groceryList.date).toISOString())} -{" "}
-            {groceryList.note}
+            {formatDate(new Date(groceryList.listDate).toISOString())} -{" "}
+            {groceryList.notes}
           </p>
         </div>
       </div>
 
       {/* Summary Card */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{groceryItems.length}</div>
+            <div className="text-2xl font-bold">
+              {groceryItems.reduce(
+                (sum, item) => sum + (item.quantity ?? 0),
+                0
+              )}
+            </div>
             <p className="text-xs text-muted-foreground">
               items in this grocery list
             </p>
@@ -440,7 +486,7 @@ export default function GroceryListDetail({
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ${groceryList.totalPrice.toFixed(2)}
+              ${groceryList.totalAmount.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">
               estimated cost for this list
@@ -462,7 +508,7 @@ export default function GroceryListDetail({
               </Avatar>
               <span className="">
                 {
-                  members.filter((m) => m.memberId === groceryList.shopperId)[0]
+                  members.filter((m) => m._id === groceryList.payerMemberId)[0]
                     .memberName
                 }
               </span>
@@ -484,20 +530,21 @@ export default function GroceryListDetail({
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <select
-            className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-          >
-            {categories.map((category) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger>
+              <SelectValue placeholder="Diary" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-2">
-          {selectedItems.length > 0 && (
+          {selectedItems.length > 1 && (
             <Button variant="outline" size="sm" onClick={handleBulkDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Delete Selected ({selectedItems.length})
@@ -525,6 +572,7 @@ export default function GroceryListDetail({
                   </Label>
                   <Input
                     id="name"
+                    placeholder="Item name"
                     value={newItem.name}
                     onChange={(e) =>
                       setNewItem({ ...newItem, name: e.target.value })
@@ -536,20 +584,23 @@ export default function GroceryListDetail({
                   <Label htmlFor="category" className="text-right">
                     Category
                   </Label>
-                  <select
-                    id="category"
-                    className="col-span-3 h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  <Select
                     value={newItem.category}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, category: e.target.value })
+                    onValueChange={(e) =>
+                      setNewItem({ ...newItem, category: e })
                     }
                   >
-                    {categories.slice(1).map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="w-full col-span-3">
+                      <SelectValue placeholder="Diary" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="quantity" className="text-right">
@@ -573,7 +624,7 @@ export default function GroceryListDetail({
                     id="price"
                     type="number"
                     step="0.01"
-                    value={newItem.price}
+                    placeholder="0.00"
                     onChange={(e) =>
                       setNewItem({
                         ...newItem,
@@ -585,70 +636,21 @@ export default function GroceryListDetail({
                 </div>
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="text-right pt-2">Owners</Label>
-                  <div className="col-span-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Checkbox
-                        id="owner-all"
-                        checked={newItem.owners.length === members.length}
-                        onCheckedChange={() => {
-                          if (newItem.owners.length === members.length) {
-                            setNewItem({ ...newItem, owners: [] });
-                          } else {
-                            setNewItem({
-                              ...newItem,
-                              owners: members.map((member) => member.memberId),
-                            });
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor="owner-all"
-                        className="flex items-center space-x-2 cursor-pointer"
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarImage
-                            src="/placeholder.svg?height=32&width=32"
-                            alt="All"
-                          />
-                          <AvatarFallback>A</AvatarFallback>
-                        </Avatar>
-                        <span>Everyone</span>
-                      </Label>
-                    </div>
-                    {members.map((owner) => (
-                      <div
-                        key={owner.memberName}
-                        className="flex items-center space-x-2"
-                      >
-                        <Checkbox
-                          id={`owner-${owner.memberName}`}
-                          checked={newItem.owners.includes(owner.memberId)}
-                          onCheckedChange={() =>
-                            handleToggleOwner(owner.memberId)
-                          }
-                        />
-                        <Label
-                          htmlFor={`owner-${owner.memberName}`}
-                          className="flex items-center space-x-2 cursor-pointer"
-                        >
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage
-                              src={owner.memberName}
-                              alt={owner.memberName}
-                            />
-                            <AvatarFallback>
-                              {owner.memberName[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span>{owner.memberName}</span>
-                        </Label>
-                      </div>
-                    ))}
-                    {newItem.owners.length === 0 && (
-                      <p className="text-sm text-destructive">
-                        Please select at least one owner
-                      </p>
-                    )}
+                  <div className="col-span-3">
+                    <MultipleSelector
+                      defaultOptions={members.map((member) => ({
+                        label: member.memberName,
+                        value: member._id,
+                      }))}
+                      value={owners}
+                      onChange={setOwners}
+                      placeholder="Select owner(s)"
+                      emptyIndicator={
+                        <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                          no results found.
+                        </p>
+                      }
+                    />
                   </div>
                 </div>
               </div>
@@ -662,10 +664,7 @@ export default function GroceryListDetail({
                 <Button
                   onClick={handleAddItem}
                   disabled={
-                    !newItem.name ||
-                    !newItem.quantity ||
-                    !newItem.price ||
-                    newItem.owners.length === 0
+                    !newItem.name || !newItem.quantity || !newItem.price
                   }
                 >
                   Add Item
@@ -752,27 +751,27 @@ export default function GroceryListDetail({
                   </TableRow>
                 ) : (
                   sortedItems.map((item) => (
-                    <TableRow key={item.groceryId}>
+                    <TableRow key={item._id}>
                       <TableCell>
                         <Checkbox
-                          checked={selectedItems.includes(item.groceryId)}
-                          onCheckedChange={() =>
-                            handleSelectItem(item.groceryId)
-                          }
-                          aria-label={`Select ${item.name}`}
+                          checked={selectedItems.includes(item._id!)}
+                          onCheckedChange={() => handleSelectItem(item._id!)}
+                          aria-label={`Select ${item.itemName}`}
                         />
                       </TableCell>
-                      <TableCell className="font-medium">{item.name}</TableCell>
+                      <TableCell className="font-medium">
+                        {item.itemName}
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.category}</Badge>
                       </TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>${item.price.toFixed(2)}</TableCell>
+                      <TableCell>${item.totalItemPrice.toFixed(2)}</TableCell>
                       <TableCell>
                         <AvatarGroup className="justify-start" limit={3}>
                           {item.owners.map((owner: string) => {
                             const ownerData = members.filter(
-                              (m) => m.memberId === owner
+                              (m) => m._id === owner
                             )[0];
                             return (
                               <Avatar
@@ -837,6 +836,107 @@ export default function GroceryListDetail({
         </CardFooter>
       </Card>
 
+      {/* Expenses Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Expenses</CardTitle>
+          <CardDescription>
+            View the details for the expenses of the whole trip.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item Name</TableHead>
+                  <TableHead>Member Name</TableHead>
+                  <TableHead>Share Amount</TableHead>
+                  <TableHead>Is Paid</TableHead>
+                  <TableHead>Note</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expenses.map(({ _id, itemName, splits }) => (
+                  <React.Fragment key={_id}>
+                    <TableRow
+                      className="bg-muted font-semibold"
+                      key={`group-${itemName}`}
+                    >
+                      <TableCell>{itemName}</TableCell>
+                      <TableCell colSpan={5}></TableCell>
+                    </TableRow>
+                    {splits.map((split, index) => (
+                      <TableRow
+                        key={`${itemName}-${split.memberName}-${index}`}
+                      >
+                        <TableCell></TableCell>
+                        <TableCell>{split.memberName}</TableCell>
+                        <TableCell>${split.shareAmount.toFixed(2)}</TableCell>
+                        <TableCell>{split.isPaid ? "Yes" : "No"}</TableCell>
+                        <TableCell>{split.note || ""}</TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Open menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {}}>
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={() => {}}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </React.Fragment>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div className="rounded-md border mt-10">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead></TableHead>
+                  {memberNames.map((name) => (
+                    <TableHead key={name}>{name}</TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-semibold">Total Owed</TableCell>
+                  {memberNames.map((name) => (
+                    <TableCell key={name}>
+                      ${memberTotals[name].toFixed(2)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <div className="text-sm text-muted-foreground">
+            Showing {sortedItems.length} of {groceryItems.length} items
+          </div>
+        </CardFooter>
+      </Card>
+
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
@@ -855,9 +955,9 @@ export default function GroceryListDetail({
                 </Label>
                 <Input
                   id="edit-name"
-                  value={currentItem.name}
+                  value={currentItem.itemName}
                   onChange={(e) =>
-                    setCurrentItem({ ...currentItem, name: e.target.value })
+                    setCurrentItem({ ...currentItem, itemName: e.target.value })
                   }
                   className="col-span-3"
                 />
@@ -889,7 +989,10 @@ export default function GroceryListDetail({
                   id="edit-quantity"
                   value={currentItem.quantity}
                   onChange={(e) =>
-                    setCurrentItem({ ...currentItem, quantity: e.target.value })
+                    setCurrentItem({
+                      ...currentItem,
+                      quantity: Number(e.target.value),
+                    })
                   }
                   className="col-span-3"
                 />
@@ -902,11 +1005,11 @@ export default function GroceryListDetail({
                   id="edit-price"
                   type="number"
                   step="0.01"
-                  value={currentItem.price}
+                  value={currentItem.totalItemPrice}
                   onChange={(e) =>
                     setCurrentItem({
                       ...currentItem,
-                      price: Number.parseFloat(e.target.value),
+                      totalItemPrice: Number.parseFloat(e.target.value),
                     })
                   }
                   className="col-span-3"
@@ -914,7 +1017,32 @@ export default function GroceryListDetail({
               </div>
               <div className="grid grid-cols-4 items-start gap-4">
                 <Label className="text-right pt-2">Owners</Label>
-                <div className="col-span-3 space-y-2">
+                <div className="col-span-3">
+                  <MultipleSelector
+                    defaultOptions={members.map((member) => ({
+                      label: member.memberName,
+                      value: member._id,
+                    }))}
+                    value={currentItem.owners.map((owner) => ({
+                      label:
+                        members.find((member) => member._id === owner)
+                          ?.memberName || owner,
+                      value: owner,
+                    }))}
+                    onChange={(options) =>
+                      setCurrentItem({
+                        ...currentItem!,
+                        owners: options.map((option) => option.value),
+                      })
+                    }
+                    emptyIndicator={
+                      <p className="text-center text-lg leading-10 text-gray-600 dark:text-gray-400">
+                        no results found.
+                      </p>
+                    }
+                  />
+                </div>
+                {/* <div className="col-span-3 space-y-2">
                   {members.map((owner) => (
                     <div
                       key={owner.memberName}
@@ -922,9 +1050,9 @@ export default function GroceryListDetail({
                     >
                       <Checkbox
                         id={`edit-owner-${owner.memberName}`}
-                        checked={currentItem.owners.includes(owner.memberId)}
+                        checked={currentItem.owners.includes(owner._id)}
                         onCheckedChange={() =>
-                          handleToggleOwner(owner.memberId, false)
+                          handleToggleOwner(owner._id, false)
                         }
                       />
                       <Label
@@ -947,7 +1075,7 @@ export default function GroceryListDetail({
                       Please select at least one owner
                     </p>
                   )}
-                </div>
+                </div> */}
               </div>
             </div>
           )}
@@ -962,9 +1090,9 @@ export default function GroceryListDetail({
               onClick={handleEditItem}
               disabled={
                 currentItem &&
-                (!currentItem.name ||
+                (!currentItem.itemName ||
                   !currentItem.quantity ||
-                  !currentItem.price ||
+                  !currentItem.totalItemPrice ||
                   currentItem.owners.length === 0)
               }
             >
@@ -987,11 +1115,11 @@ export default function GroceryListDetail({
           {currentItem && (
             <div className="py-4">
               <p className="mb-2">
-                You are about to delete: <strong>{currentItem.name}</strong>
+                <strong>{currentItem.itemName}</strong>
               </p>
               <p className="text-sm text-muted-foreground">
                 Category: {currentItem.category} | Price: $
-                {currentItem.price.toFixed(2)}
+                {currentItem.totalItemPrice.toFixed(2)}
               </p>
             </div>
           )}

@@ -23,7 +23,7 @@ export default async function RootLayout({
     redirect("/sign-in");
   }
 
-  if (user.id !== convexUser?.userId || !convexUser) {
+  if (user.id !== convexUser?._id || !convexUser) {
     await convex.mutation(api.users.syncUser, {
       userId: user?.id || "",
       email: user?.emailAddresses[0].emailAddress || "",

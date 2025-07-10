@@ -85,18 +85,19 @@ export default function GroceryLists({
     date: new Date().toISOString().split("T")[0],
     note: "",
     shopperId: "",
+    name: "",
   });
 
   // Filter and sort the grocery lists
   const filteredLists = groceryLists.filter((list) => {
     // Get the shopper name from members array using the shopperId
     const shopperName =
-      members.find((m) => m.memberId === list.shopperId)?.memberName || "";
+      members.find((m) => m._id === list.payerMemberId)?.memberName || "";
 
     const matchesSearch =
-      (list.note ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (list.listName ?? "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       shopperName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      new Date(list.date).toISOString().includes(searchQuery);
+      new Date(list.listDate).toISOString().includes(searchQuery);
 
     return matchesSearch;
   });
@@ -104,28 +105,28 @@ export default function GroceryLists({
   const sortedLists = [...filteredLists].sort((a, b) => {
     if (sortColumn === "date") {
       return sortDirection === "asc"
-        ? new Date(a.date)
+        ? new Date(a.listDate)
             .toISOString()
-            .localeCompare(new Date(b.date).toISOString())
-        : new Date(b.date)
+            .localeCompare(new Date(b.listDate).toISOString())
+        : new Date(b.listDate)
             .toISOString()
-            .localeCompare(new Date(a.date).toISOString());
+            .localeCompare(new Date(a.listDate).toISOString());
     } else if (sortColumn === "totalItems") {
       return sortDirection === "asc"
-        ? a.itemsAmount - b.itemsAmount
-        : b.itemsAmount - a.itemsAmount;
+        ? a.totalItems - b.totalItems
+        : b.totalItems - a.totalItems;
     } else if (sortColumn === "totalCost") {
       return sortDirection === "asc"
-        ? a.totalPrice - b.totalPrice
-        : b.totalPrice - a.totalPrice;
+        ? a.totalAmount - b.totalAmount
+        : b.totalAmount - a.totalAmount;
     }
     return 0;
   });
 
   // Calculate summary statistics
-  const totalLists = filteredLists.length;
-  const totalSpent = filteredLists.reduce(
-    (sum, list) => sum + list.totalPrice,
+  const totalLists = groceryLists.length;
+  const totalSpent = groceryLists.reduce(
+    (sum, list) => sum + list.totalAmount,
     0
   );
 
@@ -150,31 +151,22 @@ export default function GroceryLists({
 
     const listToAdd: GroceryList = {
       listId: newListId,
-      userId: user.userId,
-      date: new Date(newList.date).getTime() + 86400000, // Add one day (in milliseconds)
-      note: newList.note || "Grocery shopping",
-      shopperId: newList.shopperId,
-      isPaid: false,
-      itemsAmount: 0,
-      totalPrice: 0,
-      items: [
-        {
-          listId: newListId,
-          groceryId: "",
-          name: "",
-          category: "",
-          quantity: "",
-          price: 0,
-          owners: [],
-        },
-      ],
+      userId: user._id,
+      listName: newList.name,
+      listDate: new Date(newList.date).getTime() + 86400000, // Add one day (in milliseconds)
+      notes: newList.note || "Grocery shopping",
+      payerMemberId: newList.shopperId,
+      isSettled: false,
+      totalAmount: 0,
+      totalItems: 0,
     };
 
     try {
       // Call the Convex API to add the new list
       await convex.mutation(api.groceryLists.addList, {
         listId: newListId,
-        userId: user.userId,
+        name: newList.name,
+        userId: user._id,
         date: new Date(newList.date).getTime() + 86400000, // Add one day (in milliseconds)
         shopperId: newList.shopperId,
         note: newList.note || "Grocery shopping",
@@ -185,6 +177,7 @@ export default function GroceryLists({
         date: new Date().toISOString().split("T")[0],
         note: "",
         shopperId: "",
+        name: "",
       });
       setIsAddDialogOpen(false);
     } catch (error) {
@@ -196,13 +189,13 @@ export default function GroceryLists({
   // Handle deleting a list
   const handleDeleteList = async () => {
     const updatedLists = groceryLists.filter(
-      (list) => list.listId !== currentList?.listId
+      (list) => list._id !== currentList?._id
     );
 
     try {
       // call the Convex API to delete the list
       await convex.mutation(api.groceryLists.deleteList, {
-        listId: currentList?.listId ?? "",
+        listId: currentList?._id ?? "",
       });
 
       setGroceryLists(updatedLists);
@@ -216,7 +209,7 @@ export default function GroceryLists({
   // Handle bulk delete
   const handleBulkDelete = async () => {
     const updatedLists = groceryLists.filter(
-      (list) => !selectedItems.includes(list.listId)
+      (list) => !selectedItems.includes(list._id || "")
     );
 
     try {
@@ -248,7 +241,7 @@ export default function GroceryLists({
     if (selectedItems.length === filteredLists.length) {
       setSelectedItems([]);
     } else {
-      setSelectedItems(filteredLists.map((list) => list.listId));
+      setSelectedItems(filteredLists.map((list) => list._id || ""));
     }
   };
 
@@ -273,7 +266,7 @@ export default function GroceryLists({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Grocery Lists</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Grocery Trips</h1>
         <p className="text-muted-foreground">
           View and manage your grocery shopping history
         </p>
@@ -314,7 +307,7 @@ export default function GroceryLists({
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search lists..."
+              placeholder="Search trips..."
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -332,11 +325,13 @@ export default function GroceryLists({
               Delete Selected ({selectedItems.length})
             </Button>
           )}
+
+          {/* Add new Item Dialog */}
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                New Grocery List
+                New Trip
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -348,6 +343,20 @@ export default function GroceryLists({
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="name" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="name"
+                    value={newList.name}
+                    onChange={(e) =>
+                      setNewList({ ...newList, name: e.target.value })
+                    }
+                    className="col-span-3"
+                    placeholder="Dinner Party"
+                  />
+                </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="date" className="text-right">
                     Date
@@ -388,10 +397,7 @@ export default function GroceryLists({
                       </SelectTrigger>
                       <SelectContent>
                         {members.map((owner) => (
-                          <SelectItem
-                            key={owner.memberId}
-                            value={owner.memberId}
-                          >
+                          <SelectItem key={owner._id} value={owner._id}>
                             <div className="flex items-center space-x-2">
                               <Avatar className="h-6 w-6">
                                 <AvatarImage
@@ -435,10 +441,8 @@ export default function GroceryLists({
       {/* Grocery Lists Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Grocery Shopping History</CardTitle>
-          <CardDescription>
-            Click on a grocery list to view its items
-          </CardDescription>
+          <CardTitle>Shopping History</CardTitle>
+          <CardDescription>Click on a trip to view its items</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -464,6 +468,7 @@ export default function GroceryLists({
                       <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </TableHead>
+                  <TableHead>Name</TableHead>
                   <TableHead>Shopper</TableHead>
                   <TableHead
                     className="cursor-pointer"
@@ -484,7 +489,6 @@ export default function GroceryLists({
                     </div>
                   </TableHead>
                   <TableHead>Payment</TableHead>
-                  <TableHead>Note</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -497,39 +501,42 @@ export default function GroceryLists({
                   </TableRow>
                 ) : (
                   sortedLists.map((list) => (
-                    <TableRow key={list.listId}>
+                    <TableRow key={list._id}>
                       <TableCell>
                         <Checkbox
-                          checked={selectedItems.includes(list.listId)}
-                          onCheckedChange={() => handleSelectItem(list.listId)}
-                          aria-label={`Select list from ${list.date}`}
+                          checked={selectedItems.includes(list._id || "")}
+                          onCheckedChange={() =>
+                            handleSelectItem(list._id || "")
+                          }
+                          aria-label={`Select list from ${list.listDate}`}
                         />
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/application/shopping-lists/${list.listId}`}
+                          href={`/application/shopping-lists/${list._id}`}
                           className="hover:underline font-medium"
                         >
-                          {formatDate(new Date(list.date).toISOString()) ?? "-"}
+                          {formatDate(new Date(list.listDate).toISOString()) ??
+                            "-"}
                         </Link>
                       </TableCell>
                       <TableCell>
+                        <span className="line-clamp-1">{list.listName}</span>
+                      </TableCell>
+                      <TableCell>
                         {
-                          members.find((m) => m.memberId === list.shopperId)
+                          members.find((m) => m._id === list.payerMemberId)
                             ?.memberName
                         }
                       </TableCell>
-                      <TableCell>{list.itemsAmount}</TableCell>
-                      <TableCell>${list.totalPrice.toFixed(2)}</TableCell>
+                      <TableCell>{list.totalItems}</TableCell>
+                      <TableCell>${list.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>
-                        {list.isPaid ? (
+                        {list.isSettled ? (
                           <Badge variant="default">Paid</Badge>
                         ) : (
                           <Badge variant="outline">Pending</Badge>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="line-clamp-1">{list.note}</span>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
@@ -542,7 +549,7 @@ export default function GroceryLists({
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/application/shopping-lists/${list.listId}`}
+                                href={`/application/shopping-lists/${list._id}`}
                               >
                                 <Calendar className="mr-2 h-4 w-4" />
                                 View Items
@@ -591,12 +598,12 @@ export default function GroceryLists({
               <p className="mb-2">
                 You are about to delete the grocery list from:{" "}
                 <strong>
-                  {formatDate(new Date(currentList.date).toISOString())}
+                  {formatDate(new Date(currentList.listDate).toISOString())}
                 </strong>
               </p>
               <p className="text-sm text-muted-foreground">
-                Items: {currentList.totalPrice} | Total Cost: $
-                {currentList.totalPrice.toFixed(2)}
+                Items: {currentList.totalItems} | Total Cost: $
+                {currentList.totalAmount.toFixed(2)}
               </p>
             </div>
           )}
@@ -634,8 +641,8 @@ export default function GroceryLists({
             <p className="text-sm text-muted-foreground">
               Total cost: $
               {selectedItems
-                .map((id) => groceryLists.find((list) => list.listId === id))
-                .reduce((sum, list) => sum + list!.totalPrice, 0)
+                .map((id) => groceryLists.find((list) => list._id === id))
+                .reduce((sum, list) => sum + list!.totalAmount, 0)
                 .toFixed(2)}
             </p>
           </div>

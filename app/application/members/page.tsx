@@ -16,9 +16,6 @@ async function MemberPage() {
     userId: convexUser?._id || "",
   });
 
-  console.log("convexUser: ", convexUser);
-  console.log("convexMembers: ", convexMember);
-
   return (
     <>
       {convexUser && convexMember && (

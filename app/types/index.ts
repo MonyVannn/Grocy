@@ -18,74 +18,40 @@ export interface Member {
 }
 
 export interface GroceryList {
+  _id?: Id<"lists">;
   listId: string;
   userId: string;
-  date: number;
-  shopperId: string;
-  note?: string;
-  isPaid: boolean;
-  itemsAmount: number;
-  totalPrice: number;
-  items: [
-    {
-      listId: string;
-      groceryId: string;
-      name: string;
-      category: string;
-      quantity: string;
-      price: number;
-      owners: string[];
-    },
-  ];
+  listName: string;
+  listDate: number;
+  payerMemberId: string;
+  notes?: string;
+  isSettled: boolean;
+  totalAmount: number;
+  totalItems: number;
   createdAt?: number;
   updatedAt?: number;
 }
 
 export interface Grocery {
-  groceryId: string;
+  _id?: Id<"items">;
+  userId: string;
   listId: string;
-  name: string;
-  category: string;
-  quantity: string;
-  price: number;
+  itemName: string;
+  category?: string;
+  quantity?: number;
+  totalItemPrice: number;
   owners: string[];
   createdAt?: number;
   updatedAt?: number;
 }
 
-export interface ExpenseList {
-  listId: string;
-  userId: string;
-  expenseListId: string;
-  payerId: string;
-  listDate: number;
-  note?: string;
-  isPaid: boolean;
-  itemsAmount: number;
-  totalPrice: number;
-  createdAt?: number;
-  updatedAt?: number;
-}
-
-export interface Expense {
-  expenseId: string;
-  listId: string;
-  totalAmount: number;
-  totalTax: number;
-  items: [
-    {
-      name: string;
-      category: string;
-      quantity: string;
-      price: number;
-      tax: number;
-      totalDue: number;
-      owners: {
-        memberId: string;
-        amount: number;
-      };
-    },
-  ];
-  createdAt?: number;
-  updatedAt?: number;
+export interface Splits {
+  _id?: string;
+  itemName: string;
+  splits: {
+    memberName: string;
+    shareAmount: number;
+    isPaid: boolean;
+    note: string;
+  }[];
 }

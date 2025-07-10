@@ -5,7 +5,7 @@ export const getGroceries = query({
   args: { listId: v.string() },
   handler: async (ctx, args) => {
     const groceries = await ctx.db
-      .query("groceries")
+      .query("items")
       .filter((q) => q.eq(q.field("listId"), args.listId))
       .collect();
 
@@ -15,8 +15,8 @@ export const getGroceries = query({
 
 export const addGrocery = mutation({
   args: {
-    groceryId: v.string(),
-    listId: v.string(),
+    userId: v.id("users"),
+    listId: v.id("lists"),
     name: v.string(),
     category: v.string(),
     quantity: v.string(),
@@ -24,15 +24,14 @@ export const addGrocery = mutation({
     owners: v.array(v.string()),
   },
   handler: async (ctx, args) => {
-    const grocery = await ctx.db.insert("groceries", {
-      groceryId: args.groceryId,
+    const grocery = await ctx.db.insert("items", {
+      userId: args.userId,
       listId: args.listId,
-      name: args.name,
+      itemName: args.name,
       category: args.category,
-      quantity: args.quantity,
-      price: args.price,
+      quantity: Number(args.quantity),
+      totalItemPrice: args.price,
       owners: args.owners,
-      createdAt: Date.now(),
     });
 
     return grocery;
@@ -50,18 +49,17 @@ export const updateGrocery = mutation({
   },
   handler: async (ctx, args) => {
     const existingGrocery = await ctx.db
-      .query("groceries")
-      .filter((q) => q.eq(q.field("groceryId"), args.groceryId))
+      .query("items")
+      .filter((q) => q.eq(q.field("_id"), args.groceryId))
       .first();
 
     if (existingGrocery) {
       await ctx.db.patch(existingGrocery._id, {
-        name: args.name,
+        itemName: args.name,
         category: args.category,
-        quantity: args.quantity,
-        price: args.price,
+        quantity: Number(args.quantity),
+        totalItemPrice: args.price,
         owners: args.owners,
-        updatedAt: Date.now(),
       });
     }
 
@@ -73,8 +71,8 @@ export const deleteGrocery = mutation({
   args: { groceryId: v.string() },
   handler: async (ctx, args) => {
     const existingGrocery = await ctx.db
-      .query("groceries")
-      .filter((q) => q.eq(q.field("groceryId"), args.groceryId))
+      .query("items")
+      .filter((q) => q.eq(q.field("_id"), args.groceryId))
       .first();
 
     if (existingGrocery) {
@@ -88,8 +86,8 @@ export const bulkDeleteGroceries = mutation({
   handler: async (ctx, args) => {
     for (const groceryId of args.groceryIds) {
       const existingGrocery = await ctx.db
-        .query("groceries")
-        .filter((q) => q.eq(q.field("groceryId"), groceryId))
+        .query("items")
+        .filter((q) => q.eq(q.field("_id"), groceryId))
         .first();
 
       if (existingGrocery) {

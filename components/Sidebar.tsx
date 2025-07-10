@@ -39,7 +39,7 @@ export function AppSidebar({ name, email }: { name?: string; email?: string }) {
           icon: Home,
         },
         {
-          title: "Grocery List",
+          title: "Grocery Trips",
           href: "/application/shopping-lists",
           icon: ShoppingCart,
         },

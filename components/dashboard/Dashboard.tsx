@@ -1,7 +1,6 @@
 import { Badge } from "../ui/badge";
-import { ArrowDown, ArrowUp, ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { Card, CardContent } from "../ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { Summary } from "@/types";
 
 interface DashboardProps {
