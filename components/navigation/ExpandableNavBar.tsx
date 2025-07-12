@@ -2,10 +2,9 @@
 
 import React, { ReactNode, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { FiMenu } from "react-icons/fi";
 import { Logo } from "./Logo";
 import { DesktopLinks } from "./DesktopLinks";
-import { MobileLinks } from "./MobileLinks";
+// import { MobileLinks } from "./MobileLinks";
 import { Announcement } from "./Announcement";
 import { Button } from "../shared/Button";
 import Link from "next/link";
@@ -27,7 +26,6 @@ export const ExpandableNavBar = ({
   login?: boolean;
 }) => {
   const [hovered, setHovered] = useState<string | null>(null);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const activeSublinks = useMemo(() => {
     if (!hovered) return [];
@@ -57,7 +55,7 @@ export const ExpandableNavBar = ({
             <div className="flex items-center gap-4">
               <Link href={login ? `/application/dashboard` : `/sign-in`}>
                 <Button
-                  className="hidden md:block cursor-pointer"
+                  className=" cursor-pointer"
                   intent="secondary"
                   size="small"
                 >
@@ -75,14 +73,14 @@ export const ExpandableNavBar = ({
               </Link>
               {login && <UserButton />}
             </div>
-            <button
+            {/* <button
               onClick={() => setMobileNavOpen((pv) => !pv)}
               className="mt-0.5 block text-2xl md:hidden"
             >
               <FiMenu />
-            </button>
+            </button> */}
           </div>
-          <MobileLinks links={links} open={mobileNavOpen} />
+          {/* <MobileLinks links={links} open={mobileNavOpen} /> */}
         </nav>
       </div>
       <motion.main layout>

@@ -575,9 +575,13 @@ export default function GroceryListDetail({
                   src="/placeholder.svg?height=32&width=32"
                   alt="Shopper"
                 />
-                <AvatarFallback>S</AvatarFallback>
+                <AvatarFallback>
+                  {members
+                    .filter((m) => m._id === groceryList.payerMemberId)[0]
+                    .memberName[0].toUpperCase()}
+                </AvatarFallback>
               </Avatar>
-              <span className="">
+              <span>
                 {
                   members.filter((m) => m._id === groceryList.payerMemberId)[0]
                     .memberName
@@ -978,7 +982,7 @@ export default function GroceryListDetail({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead></TableHead>
+                    <TableHead>Member Name</TableHead>
                     {memberNames.map((name) => (
                       <TableHead key={name}>{name}</TableHead>
                     ))}
@@ -986,7 +990,23 @@ export default function GroceryListDetail({
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell className="font-semibold">Total Owed</TableCell>
+                    <TableCell className="font-semibold">Subtotal</TableCell>
+                    {memberNames.map((name) => (
+                      <TableCell key={name}>
+                        ${memberTotals[name].toFixed(2)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow>
+                    <TableCell className="font-semibold">Tax (10%)</TableCell>
+                    {memberNames.map((name) => (
+                      <TableCell key={name}>
+                        ${memberTotals[name].toFixed(2)}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow className="bg-[#F5F5F5]">
+                    <TableCell className="font-semibold">Total</TableCell>
                     {memberNames.map((name) => (
                       <TableCell key={name}>
                         ${memberTotals[name].toFixed(2)}
