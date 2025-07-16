@@ -54,7 +54,7 @@ import {
 } from "@/components/ui/table";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
-import { Grocery, GroceryList, Member, Splits } from "@/app/types";
+import { Grocery, GroceryList, listMember, Member, Splits } from "@/app/types";
 import {
   Select,
   SelectContent,
@@ -94,6 +94,7 @@ export default function GroceryListDetail({
   const [groceryList, setGroceryList] = useState<GroceryList>();
   const [groceryItems, setGroceryItems] = useState<Grocery[]>([]);
   const [expenses, setExpenses] = useState<Splits[]>([]);
+  const [listMembers, setListMembers] = useState<listMember[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [sortField, setSortField] = useState("name");
@@ -112,6 +113,11 @@ export default function GroceryListDetail({
     owners: [] as Option[],
   });
   const [owners, setOwners] = useState<Option[]>([]);
+  const [payment, setPayment] = useState({
+    memberId: "",
+    isPaid: "",
+    note: "",
+  });
 
   useEffect(() => {
     setGroceryList(list);
@@ -130,6 +136,23 @@ export default function GroceryListDetail({
       })
     );
     setExpenses(splits);
+
+    const memberMap = new Map();
+
+    splits.forEach((item) => {
+      item.splits.forEach((split) => {
+        if (!memberMap.has(split.memberId)) {
+          memberMap.set(split.memberId, {
+            memberId: split.memberId,
+            memberName: split.memberName,
+          });
+        }
+      });
+    });
+
+    const uniqueMembers = Array.from(memberMap.values());
+
+    setListMembers(uniqueMembers);
   }, [groceries, list, splits]);
 
   // Filter and sort the grocery items
@@ -448,7 +471,53 @@ export default function GroceryListDetail({
   };
 
   // Handle payment
-  const handlePayment = async () => {};
+  const handlePayment = async () => {
+    if (payment.memberId === "" || payment.isPaid === "") return;
+
+    try {
+      const updatedIsPaid = payment.isPaid === "true";
+
+      await convex.mutation(api.expenses.markPaid, {
+        listId: list._id as Id<"lists">,
+        memberId: payment.memberId,
+        isPaid: updatedIsPaid,
+        note: payment.note,
+      });
+
+      // Update frontend state by mapping each expense and its internal splits
+      const updatedExpenses = expenses.map((expense) => {
+        const updatedSplits = expense.splits.map((split) => {
+          if (
+            members.find((m) => m._id === payment.memberId)?.memberName ===
+            split.memberName
+          ) {
+            return {
+              ...split,
+              isPaid: updatedIsPaid,
+              note: payment.note,
+            };
+          }
+          return split;
+        });
+
+        return {
+          ...expense,
+          splits: updatedSplits,
+        };
+      });
+
+      setExpenses(updatedExpenses);
+      setIsPaidDialogOpen(false);
+      setPayment({
+        memberId: "",
+        isPaid: "",
+        note: "",
+      });
+    } catch (error) {
+      console.error("Error updating payment", error);
+      return;
+    }
+  };
 
   // Handle sort change
   const handleSortChange = (field: string) => {
@@ -961,8 +1030,16 @@ export default function GroceryListDetail({
                           <TableCell></TableCell>
                           <TableCell>{split.memberName}</TableCell>
                           <TableCell>${split.shareAmount.toFixed(2)}</TableCell>
-                          <TableCell>{split.isPaid ? "Yes" : "No"}</TableCell>
-                          <TableCell>{split.note || ""}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={split.isPaid ? "default" : "outline"}
+                            >
+                              {split.isPaid ? "Yes" : "No"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="capitalize">
+                            {split.note || ""}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </React.Fragment>
@@ -978,43 +1055,81 @@ export default function GroceryListDetail({
             </Table>
           </div>
           {expenses.length !== 0 && (
-            <div className="rounded-md border mt-10">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member Name</TableHead>
-                    {memberNames.map((name) => (
-                      <TableHead key={name}>{name}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-semibold">Subtotal</TableCell>
-                    {memberNames.map((name) => (
-                      <TableCell key={name}>
-                        ${memberTotals[name].toFixed(2)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-semibold">Tax (10%)</TableCell>
-                    {memberNames.map((name) => (
-                      <TableCell key={name}>
-                        ${memberTotals[name].toFixed(2)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow className="bg-[#F5F5F5]">
-                    <TableCell className="font-semibold">Total</TableCell>
-                    {memberNames.map((name) => (
-                      <TableCell key={name}>
-                        ${memberTotals[name].toFixed(2)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
+            // <div className="rounded-md border mt-10">
+            //   <Table>
+            //     <TableHeader>
+            //       <TableRow>
+            //         <TableHead>Member Name</TableHead>
+            //         {memberNames.map((name) => (
+            //           <TableHead key={name}>{name}</TableHead>
+            //         ))}
+            //       </TableRow>
+            //     </TableHeader>
+            //     <TableBody>
+            //       <TableRow>
+            //         <TableCell className="font-semibold">Subtotal</TableCell>
+            //         {memberNames.map((name) => (
+            //           <TableCell key={name}>
+            //             ${memberTotals[name].toFixed(2)}
+            //           </TableCell>
+            //         ))}
+            //       </TableRow>
+            //       <TableRow>
+            //         <TableCell className="font-semibold">Tax (10%)</TableCell>
+            //         {memberNames.map((name) => (
+            //           <TableCell key={name}>
+            //             ${memberTotals[name].toFixed(2)}
+            //           </TableCell>
+            //         ))}
+            //       </TableRow>
+            //       <TableRow className="bg-[#F5F5F5]">
+            //         <TableCell className="font-semibold">Total</TableCell>
+            //         {memberNames.map((name) => (
+            //           <TableCell key={name}>
+            //             ${memberTotals[name].toFixed(2)}
+            //           </TableCell>
+            //         ))}
+            //       </TableRow>
+            //     </TableBody>
+            //   </Table>
+            // </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-10">
+              {memberNames.map((name) => {
+                const subtotal = memberTotals[name] || 0;
+                const tax = subtotal * 0.1;
+                const total = subtotal + tax;
+                const isPaid = expenses.some((expense) =>
+                  expense.splits.some(
+                    (split) => split.memberName === name && split.isPaid
+                  )
+                );
+
+                return (
+                  <Card key={name}>
+                    <CardHeader className="flex justify-between items-center">
+                      <CardTitle className="flex items-center justify-between w-full font-medium">
+                        {name}
+                        <Badge variant={isPaid ? "default" : "destructive"}>
+                          {isPaid ? "Paid" : "Unpaid"}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm">
+                      <div className="text-2xl font-bold">
+                        <span>${total.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span>Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span>Tax (10%)</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -1163,13 +1278,18 @@ export default function GroceryListDetail({
           <div className="py-4 space-y-4">
             <div className="grid grid-cols-4 gap-2">
               <Label className="pt-2">Owners</Label>
-              <Select>
+              <Select
+                value={payment.memberId}
+                onValueChange={(value) =>
+                  setPayment({ ...payment, memberId: value })
+                }
+              >
                 <SelectTrigger className="col-span-3 w-full">
                   <SelectValue placeholder="Member" />
                 </SelectTrigger>
                 <SelectContent>
-                  {members.map((member) => (
-                    <SelectItem value={member._id} key={member._id}>
+                  {listMembers.map((member) => (
+                    <SelectItem value={member.memberId} key={member.memberId}>
                       {member.memberName}
                     </SelectItem>
                   ))}
@@ -1178,19 +1298,28 @@ export default function GroceryListDetail({
             </div>
             <div className="grid grid-cols-4 gap-2">
               <Label>Is Paid</Label>
-              <Select>
+              <Select
+                value={payment.isPaid}
+                onValueChange={(value) =>
+                  setPayment({ ...payment, isPaid: value })
+                }
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Yes" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Yes</SelectItem>
-                  <SelectItem value="2">No</SelectItem>
+                  <SelectItem value="true">Yes</SelectItem>
+                  <SelectItem value="false">No</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="grid grid-cols-4 gap-2">
               <Label>Note</Label>
               <Input
+                value={payment.note}
+                onChange={(e) =>
+                  setPayment({ ...payment, note: e.target.value })
+                }
                 type="text"
                 placeholder="Note..."
                 className="col-span-3"

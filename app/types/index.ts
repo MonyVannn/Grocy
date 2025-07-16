@@ -49,9 +49,15 @@ export interface Splits {
   _id?: string;
   itemName: string;
   splits: {
+    memberId?: string;
     memberName: string;
     shareAmount: number;
     isPaid: boolean;
     note: string;
   }[];
+}
+
+export interface listMember {
+  memberId: string;
+  memberName: string;
 }

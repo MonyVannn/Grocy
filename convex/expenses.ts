@@ -140,6 +140,7 @@ export const getExpensDetail = query({
       const splitsForItem = splitsByItemId.get(item._id) || [];
 
       const formattedSplits = splitsForItem.map((split) => ({
+        memberId: split.memberId,
         memberName: memberMap.get(split.memberId) || "Unknown",
         shareAmount: split.shareAmount,
         isPaid: split.isPaid ?? false,
@@ -195,5 +196,32 @@ export const deleteExpensesByItemId = mutation({
         await ctx.db.delete(split._id);
       }
     }
+  },
+});
+
+export const markPaid = mutation({
+  args: {
+    listId: v.string(),
+    memberId: v.string(),
+    isPaid: v.boolean(),
+    note: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const existingSplit = await ctx.db
+      .query("itemSplits")
+      .filter((q) => q.eq(q.field("listId"), args.listId))
+      .filter((q) => q.eq(q.field("memberId"), args.memberId))
+      .collect();
+
+    if (existingSplit.length > 0) {
+      for (const split of existingSplit) {
+        await ctx.db.patch(split._id, {
+          isPaid: args.isPaid,
+          note: args.note,
+        });
+      }
+    }
+
+    return existingSplit;
   },
 });
