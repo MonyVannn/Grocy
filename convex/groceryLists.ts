@@ -79,6 +79,27 @@ export const updateListAmount = mutation({
   },
 });
 
+export const updateList = mutation({
+  args: {
+    listId: v.string(),
+    isSettled: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const existingList = await ctx.db
+      .query("lists")
+      .filter((q) => q.eq(q.field("_id"), args.listId))
+      .first();
+
+    if (existingList) {
+      await ctx.db.patch(existingList._id, {
+        isSettled: args.isSettled,
+      });
+    }
+
+    console.log("List updated successfully");
+  },
+});
+
 export const deleteList = mutation({
   args: { listId: v.string() },
   handler: async (ctx, args) => {

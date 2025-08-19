@@ -33,8 +33,6 @@ async function GroceryListDetailPage({
     listId: id,
   });
 
-  console.log(convexSplits);
-
   return (
     <>
       {convexGroceries &&

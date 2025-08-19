@@ -483,6 +483,20 @@ export default function GroceryListDetail({
         note: payment.note,
       });
 
+      // Refetch updated expenses from Convex
+      const updatedExpense = await convex.query(api.expenses.getExpensDetail, {
+        listId: list._id as Id<"lists">,
+      });
+
+      const allSettled = updatedExpense.every((expense) =>
+        expense.splits.every((split) => split.isPaid)
+      );
+
+      await convex.mutation(api.groceryLists.updateList, {
+        listId: list._id as Id<"lists">,
+        isSettled: allSettled,
+      });
+
       // Update frontend state by mapping each expense and its internal splits
       const updatedExpenses = expenses.map((expense) => {
         const updatedSplits = expense.splits.map((split) => {
