@@ -1032,7 +1032,11 @@ export default function GroceryListDetail({
                           <TableCell>${split.shareAmount.toFixed(2)}</TableCell>
                           <TableCell>
                             <Badge
-                              variant={split.isPaid ? "default" : "outline"}
+                              className={
+                                split.isPaid
+                                  ? "text-green-700 border-green-200 bg-green-50"
+                                  : "text-red-700 border-red-200 bg-red-50"
+                              }
                             >
                               {split.isPaid ? "Yes" : "No"}
                             </Badge>
@@ -1055,44 +1059,6 @@ export default function GroceryListDetail({
             </Table>
           </div>
           {expenses.length !== 0 && (
-            // <div className="rounded-md border mt-10">
-            //   <Table>
-            //     <TableHeader>
-            //       <TableRow>
-            //         <TableHead>Member Name</TableHead>
-            //         {memberNames.map((name) => (
-            //           <TableHead key={name}>{name}</TableHead>
-            //         ))}
-            //       </TableRow>
-            //     </TableHeader>
-            //     <TableBody>
-            //       <TableRow>
-            //         <TableCell className="font-semibold">Subtotal</TableCell>
-            //         {memberNames.map((name) => (
-            //           <TableCell key={name}>
-            //             ${memberTotals[name].toFixed(2)}
-            //           </TableCell>
-            //         ))}
-            //       </TableRow>
-            //       <TableRow>
-            //         <TableCell className="font-semibold">Tax (10%)</TableCell>
-            //         {memberNames.map((name) => (
-            //           <TableCell key={name}>
-            //             ${memberTotals[name].toFixed(2)}
-            //           </TableCell>
-            //         ))}
-            //       </TableRow>
-            //       <TableRow className="bg-[#F5F5F5]">
-            //         <TableCell className="font-semibold">Total</TableCell>
-            //         {memberNames.map((name) => (
-            //           <TableCell key={name}>
-            //             ${memberTotals[name].toFixed(2)}
-            //           </TableCell>
-            //         ))}
-            //       </TableRow>
-            //     </TableBody>
-            //   </Table>
-            // </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-10">
               {memberNames.map((name) => {
                 const subtotal = memberTotals[name] || 0;
@@ -1109,7 +1075,13 @@ export default function GroceryListDetail({
                     <CardHeader className="flex justify-between items-center">
                       <CardTitle className="flex items-center justify-between w-full font-medium">
                         {name}
-                        <Badge variant={isPaid ? "default" : "destructive"}>
+                        <Badge
+                          className={
+                            isPaid
+                              ? "text-green-700 border-green-200 bg-green-50"
+                              : "text-red-700 border-red-200 bg-red-50"
+                          }
+                        >
                           {isPaid ? "Paid" : "Unpaid"}
                         </Badge>
                       </CardTitle>

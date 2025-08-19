@@ -1,83 +1,41 @@
-import { Badge } from "../ui/badge";
-import { ArrowDown, ArrowUp } from "lucide-react";
-import { Card, CardContent } from "../ui/card";
-import { Summary } from "@/types";
+import MatrixCards from "./_components/MetrixCards";
+import CalendarCard from "./_components/CalendarCard";
+import { ExpenseCard } from "./_components/ExpenseCard";
+import RecentTripsCard from "./_components/RecentTripsCard";
+import { MembersSummary, TripsSummaries } from "@/app/types";
 
-interface DashboardProps {
-  data: Summary | undefined;
-}
-
-const Dashboard = ({ data }: DashboardProps) => {
-  if (!data) return null;
-
-  console.log(data);
-
+const Dashboard = ({
+  convexTripsSummary,
+  convexMembersSummary,
+}: {
+  convexTripsSummary: TripsSummaries;
+  convexMembersSummary: MembersSummary;
+}) => {
   return (
     <div className="flex gap-4 mb-8">
       <div className="flex-1">
-        <div className="flex items-center gap-2">
-          <h3 className="text-3xl font-bold">${data.totalOverallSpending}</h3>
-          {12 >= 0 ? (
-            <Badge
-              variant={"secondary"}
-              className="bg-green-200 font-medium rounded-full"
-            >
-              <ArrowUp className="mr-1 h-3 w-3" />
-              12%
-            </Badge>
-          ) : (
-            <Badge
-              variant={"secondary"}
-              className="bg-red-200 font-medium rounded-full"
-            >
-              <ArrowDown className="mr-1 h-3 w-3" />
-              12%
-            </Badge>
-          )}
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm">
+            Overview of your grocery
+          </p>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mt-6">
-          <Card className="rounded-xl border border-gray-100 shadow-sm">
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium">Top spender</div>
-
-                <Badge variant="outline">
-                  {data.topSpender?.memberName || "N/A"}
-                </Badge>
-              </div>
-              <div className="text-2xl font-bold">
-                ${data.topSpender?.totalSpent || "0"}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="rounded-xl border border-gray-100 shadow-sm">
-            <CardContent>
-              <div className="flex items-center gap-2">
-                <div className="text-sm font-medium">Average Spending</div>
-                <Badge variant={"outline"}>Per Person</Badge>
-              </div>
-              <div className="text-2xl font-bold">${data.averageSpending}</div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Card className="rounded-xl border border-gray-100 shadow-sm">
-              <CardContent>
-                <div className="text-sm font-medium">Recipes</div>
-                <div className="text-2xl font-bold">5</div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-xl border border-gray-100 shadow-sm">
-              <CardContent>
-                <div className="text-sm font-medium">Members</div>
-                <div className="text-2xl font-bold">
-                  {data.allSpending.length}
-                </div>
-              </CardContent>
-            </Card>
+          <div className="grid grid-cols-3 gap-4 col-span-3">
+            <MatrixCards
+              convexTripsSummary={convexTripsSummary}
+              convexMembersSummary={convexMembersSummary}
+            />
+          </div>
+          <div className="col-span-3 grid grid-cols-3 gap-4">
+            <div className="col-span-2">
+              <ExpenseCard />
+            </div>
+            <CalendarCard />
+          </div>
+          <div className="col-span-3">
+            <RecentTripsCard />
           </div>
         </div>
       </div>

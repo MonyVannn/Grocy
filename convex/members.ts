@@ -91,3 +91,61 @@ export const getMembersByUserId = query({
     return members;
   },
 });
+
+export const getMembersSummary = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based index (0 = January)
+
+    // Calculate current month
+    const startOfMonth = new Date(currentYear, currentMonth, 1).getTime(); // inclusive
+    const startOfNextMonth = new Date(
+      currentYear,
+      currentMonth + 1,
+      1
+    ).getTime(); // exclusive
+
+    // Calculate previous month
+    const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const prevYear = prevMonthDate.getFullYear();
+    const prevMonth = prevMonthDate.getMonth(); // still 0-based
+
+    const startOfPrevMonth = new Date(prevYear, prevMonth, 1).getTime(); // inclusive
+    const startOfCurrentMonth = new Date(
+      currentYear,
+      currentMonth,
+      1
+    ).getTime(); // exclusive
+
+    const currentMembers = await ctx.db
+      .query("members")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .collect();
+
+    const previousMembers = await ctx.db
+      .query("members")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.gte(q.field("_creationTime"), startOfPrevMonth))
+      .filter((q) => q.lt(q.field("_creationTime"), startOfCurrentMonth))
+      .collect();
+
+    const differences = currentMembers.length - previousMembers.length;
+    const percentage =
+      previousMembers.length > 0
+        ? ((currentMembers.length - previousMembers.length) /
+            previousMembers.length) *
+          100
+        : 100; // If there were no previous trips, consider it a 100% increase
+
+    return {
+      current: currentMembers.length,
+      previous: previousMembers.length,
+      differences,
+      percentage,
+    };
+  },
+});

@@ -267,7 +267,7 @@ export default function GroceryLists({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Grocery Trips</h1>
-        <p className="text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           View and manage your grocery shopping history
         </p>
       </div>
@@ -533,9 +533,19 @@ export default function GroceryLists({
                       <TableCell>${list.totalAmount.toFixed(2)}</TableCell>
                       <TableCell>
                         {list.isSettled ? (
-                          <Badge variant="default">Paid</Badge>
+                          <Badge
+                            variant="default"
+                            className="text-green-700 border-green-200 bg-green-50"
+                          >
+                            Paid
+                          </Badge>
                         ) : (
-                          <Badge variant="outline">Pending</Badge>
+                          <Badge
+                            variant="outline"
+                            className="text-yellow-700 border-yellow-200 bg-yellow-50"
+                          >
+                            Pending
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

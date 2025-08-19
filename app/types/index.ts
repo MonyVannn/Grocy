@@ -61,3 +61,19 @@ export interface listMember {
   memberId: string;
   memberName: string;
 }
+
+export interface TripsSummaries {
+  currentTrips: number;
+  previousTrips: number;
+  totalUnsettled: number;
+  totalSettled: number;
+  percentage: number;
+  differences: number;
+}
+
+export interface MembersSummary {
+  current: number;
+  previous: number;
+  differences: number;
+  percentage: number;
+}

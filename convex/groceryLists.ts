@@ -129,3 +129,75 @@ export const getListById = query({
     return list;
   },
 });
+
+export const getSummaries = query({
+  args: {
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based index (0 = January)
+
+    // Calculate current month
+    const startOfMonth = new Date(currentYear, currentMonth, 1).getTime(); // inclusive
+    const startOfNextMonth = new Date(
+      currentYear,
+      currentMonth + 1,
+      1
+    ).getTime(); // exclusive
+
+    // Calculate previous month
+    const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const prevYear = prevMonthDate.getFullYear();
+    const prevMonth = prevMonthDate.getMonth(); // still 0-based
+
+    const startOfPrevMonth = new Date(prevYear, prevMonth, 1).getTime(); // inclusive
+    const startOfCurrentMonth = new Date(
+      currentYear,
+      currentMonth,
+      1
+    ).getTime(); // exclusive
+
+    // get total trips current month
+    const currentTrips = await ctx.db
+      .query("lists")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.gte(q.field("_creationTime"), startOfMonth))
+      .filter((q) => q.lt(q.field("_creationTime"), startOfNextMonth))
+      .collect();
+
+    // get total trips last month
+    const previousTrips = await ctx.db
+      .query("lists")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.gte(q.field("_creationTime"), startOfPrevMonth))
+      .filter((q) => q.lt(q.field("_creationTime"), startOfCurrentMonth))
+      .collect();
+
+    // get total unsettled & settled trips
+    const unsettled = currentTrips.filter((trip) => trip.isSettled === false);
+    const settled = currentTrips.filter((trip) => trip.isSettled === true);
+
+    const totalUnsettled = unsettled.length;
+    const totalSettled = settled.length;
+
+    // calculate differences & percentage
+    const differences = currentTrips.length - previousTrips.length;
+    const percentage =
+      previousTrips.length > 0
+        ? ((currentTrips.length - previousTrips.length) /
+            previousTrips.length) *
+          100
+        : 100; // If there were no previous trips, consider it a 100% increase
+
+    return {
+      currentTrips: currentTrips.length,
+      previousTrips: previousTrips.length,
+      totalUnsettled,
+      totalSettled,
+      percentage,
+      differences,
+    };
+  },
+});
