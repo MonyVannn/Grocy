@@ -62,7 +62,7 @@ export interface listMember {
   memberName: string;
 }
 
-export interface TripsSummaries {
+export interface TripsSummary {
   currentTrips: number;
   previousTrips: number;
   totalUnsettled: number;
@@ -72,6 +72,14 @@ export interface TripsSummaries {
 }
 
 export interface MembersSummary {
+  current: number;
+  previous: number;
+  differences: number;
+  percentage: number;
+}
+
+export interface CalendarSummary {
+  tripDay: number[];
   current: number;
   previous: number;
   differences: number;

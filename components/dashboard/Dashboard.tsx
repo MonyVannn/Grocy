@@ -2,14 +2,16 @@ import MatrixCards from "./_components/MetrixCards";
 import CalendarCard from "./_components/CalendarCard";
 import { ExpenseCard } from "./_components/ExpenseCard";
 import RecentTripsCard from "./_components/RecentTripsCard";
-import { MembersSummary, TripsSummaries } from "@/app/types";
+import { CalendarSummary, MembersSummary, TripsSummary } from "@/app/types";
 
 const Dashboard = ({
   convexTripsSummary,
   convexMembersSummary,
+  convexCalendarSummary,
 }: {
-  convexTripsSummary: TripsSummaries;
+  convexTripsSummary: TripsSummary;
   convexMembersSummary: MembersSummary;
+  convexCalendarSummary: CalendarSummary;
 }) => {
   return (
     <div className="flex gap-4 mb-8">
@@ -32,7 +34,7 @@ const Dashboard = ({
             <div className="col-span-2">
               <ExpenseCard />
             </div>
-            <CalendarCard />
+            <CalendarCard CalendarSummary={convexCalendarSummary} />
           </div>
           <div className="col-span-3">
             <RecentTripsCard />

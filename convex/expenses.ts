@@ -168,3 +168,77 @@ export const markPaid = mutation({
     return existingSplit;
   },
 });
+
+export const getCalendarCardData = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth(); // 0-based index (0 = January)
+
+    // Calculate current month
+    const startOfMonth = new Date(currentYear, currentMonth, 1).getTime(); // inclusive
+    const startOfNextMonth = new Date(
+      currentYear,
+      currentMonth + 1,
+      1
+    ).getTime(); // exclusive
+
+    // Calculate previous month
+    const prevMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const prevYear = prevMonthDate.getFullYear();
+    const prevMonth = prevMonthDate.getMonth(); // still 0-based
+
+    const startOfPrevMonth = new Date(prevYear, prevMonth, 1).getTime(); // inclusive
+    const startOfCurrentMonth = new Date(
+      currentYear,
+      currentMonth,
+      1
+    ).getTime();
+
+    // get total trips current month
+    const currentExpense = await ctx.db
+      .query("lists")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.gte(q.field("_creationTime"), startOfMonth))
+      .filter((q) => q.lt(q.field("_creationTime"), startOfNextMonth))
+      .collect();
+
+    const totalAmountCurrent = currentExpense.reduce(
+      (sum, expense) => sum + (expense.totalAmount || 0),
+      0
+    );
+
+    // get total trips last month
+    const previousExpense = await ctx.db
+      .query("lists")
+      .filter((q) => q.eq(q.field("userId"), args.userId))
+      .filter((q) => q.gte(q.field("_creationTime"), startOfPrevMonth))
+      .filter((q) => q.lt(q.field("_creationTime"), startOfCurrentMonth))
+      .collect();
+
+    const totalAmountPrevious = previousExpense.reduce(
+      (sum, expense) => sum + (expense.totalAmount || 0),
+      0
+    );
+
+    const differences = totalAmountCurrent - totalAmountPrevious;
+    const percentage =
+      totalAmountPrevious > 0
+        ? ((totalAmountCurrent - totalAmountPrevious) / totalAmountPrevious) *
+          100
+        : 100; // If there were no previous trips, consider it a 100% increase
+
+    const tripDay = currentExpense.map(
+      (expense) => new Date(expense.listDate).getDate() - 1
+    );
+
+    return {
+      tripDay,
+      current: totalAmountCurrent,
+      previous: totalAmountPrevious,
+      differences,
+      percentage,
+    };
+  },
+});

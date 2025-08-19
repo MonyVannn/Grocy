@@ -1,22 +1,14 @@
-"use client";
-
-import { MembersSummary, TripsSummaries } from "@/app/types";
+import { MembersSummary, TripsSummary } from "@/app/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { ChevronDown, TrendingDown, TrendingUp } from "lucide-react";
-import { useState } from "react";
 
 function MatrixCards({
   convexTripsSummary,
   convexMembersSummary,
 }: {
-  convexTripsSummary: TripsSummaries;
+  convexTripsSummary: TripsSummary;
   convexMembersSummary: MembersSummary;
 }) {
-  const [tripsSummary, setTripsSummary] =
-    useState<TripsSummaries>(convexTripsSummary);
-  const [membersSummary, setMembersSummary] =
-    useState<MembersSummary>(convexMembersSummary);
-
   return (
     <>
       <Card className="border-0 shadow-sm">
@@ -35,34 +27,34 @@ function MatrixCards({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-3xl font-bold text-gray-900">
-                {tripsSummary?.currentTrips || 0}
+                {convexTripsSummary?.currentTrips || 0}
               </span>
               <div className="flex items-center gap-1 text-sm">
-                {tripsSummary.differences >= 0 ? (
+                {convexTripsSummary.differences >= 0 ? (
                   <TrendingUp className="h-4 w-4 text-green-600" />
                 ) : (
                   <TrendingDown className="h-4 w-4 text-red-600" />
                 )}
                 <span
                   className={
-                    membersSummary.differences >= 0
+                    convexMembersSummary.differences >= 0
                       ? "text-green-600"
                       : "text-red-600"
                   }
                 >
-                  {tripsSummary.percentage}%
+                  {convexTripsSummary.percentage}%
                 </span>
               </div>
             </div>
-            {tripsSummary.differences >= 0 ? (
+            {convexTripsSummary.differences >= 0 ? (
               <p className="text-xs text-gray-500">
-                Increased by {tripsSummary.differences} trips compared to last
-                month
+                Increased by {convexTripsSummary.differences} trips compared to
+                last month
               </p>
             ) : (
               <p className="text-xs text-gray-500">
-                Decreased by {Math.abs(tripsSummary.differences)} trips compared
-                to last month
+                Decreased by {Math.abs(convexTripsSummary.differences)} trips
+                compared to last month
               </p>
             )}
           </div>
@@ -86,11 +78,12 @@ function MatrixCards({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-3xl font-bold text-gray-900">
-                {tripsSummary?.totalUnsettled || 0}
+                {convexTripsSummary?.totalUnsettled || 0}
               </span>
             </div>
             <p className="text-xs text-gray-500">
-              Among {tripsSummary.totalSettled} settled trips current month
+              Among {convexTripsSummary.totalSettled} settled trips current
+              month
             </p>
           </div>
         </CardContent>
@@ -104,10 +97,10 @@ function MatrixCards({
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-3xl font-bold text-gray-900">
-                {membersSummary.current}
+                {convexMembersSummary.current}
               </span>
               <div className="flex items-center gap-1 text-sm">
-                {membersSummary.differences >= 0 ? (
+                {convexMembersSummary.differences >= 0 ? (
                   <TrendingUp className="h-4 w-4 text-green-600" />
                 ) : (
                   <TrendingDown className="h-4 w-4 text-red-600" />
@@ -115,24 +108,24 @@ function MatrixCards({
 
                 <span
                   className={
-                    membersSummary.differences >= 0
+                    convexMembersSummary.differences >= 0
                       ? "text-green-600"
                       : "text-red-600"
                   }
                 >
-                  {membersSummary.percentage}%
+                  {convexMembersSummary.percentage}%
                 </span>
               </div>
             </div>
-            {membersSummary.differences >= 0 ? (
+            {convexMembersSummary.differences >= 0 ? (
               <p className="text-xs text-gray-500">
-                Increased by {membersSummary.differences} members compared to
-                last month
+                Increased by {convexMembersSummary.differences} members compared
+                to last month
               </p>
             ) : (
               <p className="text-xs text-gray-500">
-                Decreased by {Math.abs(membersSummary.differences)} members
-                compared to last month
+                Decreased by {Math.abs(convexMembersSummary.differences)}{" "}
+                members compared to last month
               </p>
             )}
           </div>

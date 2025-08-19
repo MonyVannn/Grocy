@@ -29,7 +29,13 @@ async function MainPage() {
     }
   );
 
-  console.log("convexSummaries: ", convexMembersSummary);
+  const convexCalendarSuummary = await convex.query(
+    api.expenses.getCalendarCardData,
+    {
+      userId: convexUser?._id || "",
+    }
+  );
+  console.log("convexSummaries: ", convexCalendarSuummary);
 
   return (
     <>
@@ -37,6 +43,7 @@ async function MainPage() {
       <Dashboard
         convexTripsSummary={convexTripsSummary}
         convexMembersSummary={convexMembersSummary}
+        convexCalendarSummary={convexCalendarSuummary}
       />
     </>
   );

@@ -1,15 +1,20 @@
 "use client";
 
+import { CalendarSummary } from "@/app/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronDown } from "lucide-react";
 
-export default function CalendarCard() {
+export default function CalendarCard({
+  CalendarSummary,
+}: {
+  CalendarSummary: CalendarSummary;
+}) {
   const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   const calendarDays = Array.from({ length: 35 }, (_, i) => {
     const day = i - 6; // Start from previous month
     const isCurrentMonth = day > 0 && day <= 31;
-    const isToday = day === 12;
-    const hasActivity = [5, 8, 12, 15, 18, 22, 25, 28].includes(day);
+    const isToday = day === new Date().getDate();
+    const hasActivity = CalendarSummary.tripDay.includes(day);
 
     return {
       day: isCurrentMonth ? day : "",
@@ -27,19 +32,32 @@ export default function CalendarCard() {
             Total Expenses
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-gray-500">
-            <span>March, 2025</span>
+            <span>
+              {`${new Date().toLocaleString("default", { month: "long" })}, ${new Date().getFullYear()}`}
+            </span>
             <ChevronDown className="h-4 w-4" />
           </div>
         </div>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <div className="text-3xl font-bold">$1,245</div>
-          <div className="text-sm text-green-600 flex items-center gap-1">
-            <span>+2.6%</span>
+          <div className="text-3xl font-bold">${CalendarSummary.current}</div>
+          <div className="text-sm flex items-center gap-1">
+            <span
+              className={
+                CalendarSummary.differences < 0
+                  ? "text-green-600"
+                  : "text-red-600"
+              }
+            >
+              {CalendarSummary.percentage.toFixed(2)}%
+            </span>
           </div>
           <div className="text-xs text-gray-500 mt-1">
-            Increased by +$120 compared to last week
+            {CalendarSummary.differences < 0
+              ? "Decrease by -"
+              : "Increase by +"}
+            ${Math.abs(CalendarSummary.differences)} compared to last month
           </div>
         </div>
 
