@@ -883,6 +883,12 @@ export default function GroceryListDetail({
                       <ArrowUpDown className="ml-2 h-4 w-4 text-muted-foreground" />
                     </div>
                   </TableHead>
+                  <TableHead className="cursor-pointer">
+                    <div className="flex items-center">Tax</div>
+                  </TableHead>
+                  <TableHead className="cursor-pointer">
+                    <div className="flex items-center">Total</div>
+                  </TableHead>
                   <TableHead>Owners</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -923,6 +929,15 @@ export default function GroceryListDetail({
                         <Badge variant="outline">{item.category}</Badge>
                       </TableCell>
                       <TableCell>{item.quantity}</TableCell>
+                      <TableCell>${item.totalItemPrice.toFixed(2)}</TableCell>
+                      <TableCell>
+                        $
+                        {
+                          item.category === "Other"
+                            ? (item.totalItemPrice * 0.1925).toFixed(2) // Tax at 9.25% for "other"
+                            : (item.totalItemPrice * 0.0225).toFixed(2) // Tax at 2.25% for everything else
+                        }
+                      </TableCell>
                       <TableCell>${item.totalItemPrice.toFixed(2)}</TableCell>
                       <TableCell>
                         <AvatarGroup className="justify-start" limit={3}>
@@ -1028,10 +1043,9 @@ export default function GroceryListDetail({
                       >
                         <TableCell>
                           {itemName} ($
-                          {splits.reduce(
-                            (sum, split) => sum + split.shareAmount,
-                            0
-                          )}
+                          {splits
+                            .reduce((sum, split) => sum + split.shareAmount, 0)
+                            .toFixed(2)}
                           )
                         </TableCell>
                         <TableCell colSpan={5}></TableCell>
@@ -1075,7 +1089,8 @@ export default function GroceryListDetail({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-10">
               {memberNames.map((name) => {
                 const subtotal = memberTotals[name] || 0;
-                const tax = subtotal * 0.1;
+                const taxRate = selectedCategory === "Other" ? 0.0925 : 0.0225;
+                const tax = subtotal * taxRate;
                 const total = subtotal + tax;
                 const isPaid = expenses.some((expense) =>
                   expense.splits.some(
@@ -1108,7 +1123,7 @@ export default function GroceryListDetail({
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between text-xs">
-                        <span>Tax (10%)</span>
+                        <span>Tax</span>
                         <span>${tax.toFixed(2)}</span>
                       </div>
                     </CardContent>
