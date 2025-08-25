@@ -60,4 +60,11 @@ export default defineSchema({
     .index("by_member_id", ["memberId"])
     .index("by_list_member", ["listId", "memberId"])
     .index("by_user_id", ["userId"]),
+
+  shareLinks: defineTable({
+    token: v.string(), // unique random string
+    tripId: v.id("trips"),
+    createdBy: v.string(), // Clerk userId
+    expiresAt: v.number(), // timestamp (ms)
+  }).index("by_token", ["token"]),
 });
